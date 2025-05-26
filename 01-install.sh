@@ -66,8 +66,6 @@ EOF
 disk_efi="$disk"p1
 disk_main="$disk"p2
 
-mkfs.fat -F 32 "$disk_efi"
-
 name_crypt_root="main"
 
 set +x
@@ -118,6 +116,8 @@ mount -o "$MOUNT_OPTS"@images "$disk_encrypted" /mnt/var/lib/libvirt/images
 mount -o "$MOUNT_OPTS"@log "$disk_encrypted" /mnt/var/log
 mount -o "$MOUNT_OPTS"@spool "$disk_encrypted" /mnt/var/spool
 mount -o "$MOUNT_OPTS"@tmp "$disk_encrypted" /mnt/tmp
+
+mkfs.fat -F 32 "$disk_efi"
 
 mkdir -p /mnt/boot
 # boot_dir="/efi"
