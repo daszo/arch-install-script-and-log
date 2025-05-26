@@ -1,0 +1,1570 @@
+root@archiso ~ # bash arch-setup-profiles/01-install.sh
++ set +x
+root password
+Enter password:
+Enter password again:
+Passwords match
+password for user: daszo
+Enter password:
+Enter password again:
+Passwords match
+disk encryption password (LUKS)
+Enter password:
+Enter password again:
+Passwords match
++ hostname=Arch-t480
++ timedatectl
+               Local time: Mon 2025-05-26 19:07:22 UTC
+           Universal time: Mon 2025-05-26 19:07:22 UTC
+                 RTC time: Mon 2025-05-26 19:07:22
+                Time zone: UTC (UTC, +0000)
+System clock synchronized: yes
+              NTP service: active
+          RTC in local TZ: no
++ fdisk -l
+Disk /dev/nvme0n1: 476.94 GiB, 512110190592 bytes, 1000215216 sectors
+Disk model: INTEL SSDPEKKF512G8L
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: BF82F7E1-B2FD-4724-B3D4-65B0230B8E64
+
+Device           Start        End   Sectors   Size Type
+/dev/nvme0n1p1    2048    2099199   2097152     1G EFI System
+/dev/nvme0n1p2 2099200 1000214527 998115328 475.9G Linux filesystem
+
+
+Disk /dev/sda: 238.47 GiB, 256060514304 bytes, 500118192 sectors
+Disk model: DataTraveler Max
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xedfafb39
+
+Device     Boot   Start     End Sectors  Size Id Type
+/dev/sda1  *         64 2095103 2095040 1023M  0 Empty
+/dev/sda2       2095104 2453503  358400  175M ef EFI (FAT-12/16/32)
+
+
+Disk /dev/loop0: 853.88 MiB, 895361024 bytes, 1748752 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
++ read -p 'Drive: ' disk
+Drive: /dev/nvme0n1
++ fdisk /dev/nvme0n1
+
+Welcome to fdisk (util-linux 2.41).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): Created a new GPT disklabel (GUID: BCE3588A-9D84-4CBE-BF58-6D3B393813B2).
+
+Command (m for help): Partition number (1-128, default 1): First sector (2048-1000215182, default 2048): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-1000215182, default 1000214527):
+Created a new partition 1 of type 'Linux filesystem' and of size 1 GiB.
+Partition #1 contains a vfat signature.
+
+Command (m for help):
+Selected partition 1
+Partition type or alias (type L to list all): Partition type or alias (type L to list all): Changed type of partition 'Linux filesystem' to 'EFI System'.
+
+Command (m for help): Partition number (2-128, default 2): First sector (2099200-1000215182, default 2099200): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2099200-1000215182, default 1000214527): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2099200-1000215182, default 1000214527): Last sector, +/-sectors or +/-size{K,M,G,T,P} (2099200-1000215182, default 1000214527):
+Command (m for help):
++ disk_efi=/dev/nvme0n1p1
++ disk_main=/dev/nvme0n1p2
++ mkfs.fat -F 32 /dev/nvme0n1p1
+mkfs.fat 4.2 (2021-01-31)
++ name_crypt_root=main
++ set +x
+WARNING: Device /dev/nvme0n1p2 already contains a 'crypto_LUKS' superblock signature.
++ disk_encrypted=/dev/mapper/main
++ mkfs.btrfs -f /dev/mapper/main
+btrfs-progs v6.14
+See https://btrfs.readthedocs.io for more information.
+
+Performing full device TRIM /dev/mapper/main (475.92GiB) ...
+NOTE: several default settings have changed in version 5.15, please make sure
+      this does not affect your deployments:
+      - DUP for metadata (-m dup)
+      - enabled no-holes (-O no-holes)
+      - enabled free-space-tree (-R free-space-tree)
+
+Label:              (null)
+UUID:               d529cfd6-becc-4b8b-856a-7bfb35a440d1
+Node size:          16384
+Sector size:        4096        (CPU page size: 4096)
+Filesystem size:    475.92GiB
+Block group profiles:
+  Data:             single            8.00MiB
+  Metadata:         DUP               1.00GiB
+  System:           DUP               8.00MiB
+SSD detected:       yes
+Zoned device:       no
+Features:           extref, skinny-metadata, no-holes, free-space-tree
+Checksum:           crc32c
+Number of devices:  1
+Devices:
+   ID        SIZE  PATH
+    1   475.92GiB  /dev/mapper/main
+
++ mount /dev/mapper/main /mnt
++ btrfs subvolume create /mnt/@
+Create subvolume '/mnt/@'
++ btrfs subvolume create /mnt/@home
+Create subvolume '/mnt/@home'
++ btrfs subvolume create /mnt/@opt
+Create subvolume '/mnt/@opt'
++ btrfs subvolume create /mnt/@srv
+Create subvolume '/mnt/@srv'
++ btrfs subvolume create /mnt/@cache
+Create subvolume '/mnt/@cache'
++ btrfs subvolume create /mnt/@images
+Create subvolume '/mnt/@images'
++ btrfs subvolume create /mnt/@log
+Create subvolume '/mnt/@log'
++ btrfs subvolume create /mnt/@spool
+Create subvolume '/mnt/@spool'
++ btrfs subvolume create /mnt/@tmp
+Create subvolume '/mnt/@tmp'
++ umount /mnt
++ MOUNT_OPTS=noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@ /dev/mapper/main /mnt
++ mkdir -p /mnt/home
++ mkdir -p /mnt/opt
++ mkdir -p /mnt/srv
++ mkdir -p /mnt/var/cache
++ mkdir -p /mnt/var/lib/libvirt/images
++ mkdir -p /mnt/var/log
++ mkdir -p /mnt/var/spool
++ mkdir -p /mnt/tmp
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@home /dev/mapper/main /mnt/home
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@opt /dev/mapper/main /mnt/opt
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@srv /dev/mapper/main /mnt/srv
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@cache /dev/mapper/main /mnt/var/cache
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@images /dev/mapper/main /mnt/var/lib/libvirt/images
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@log /dev/mapper/main /mnt/var/log
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@spool /dev/mapper/main /mnt/var/spool
++ mount -o noatime,ssd,compress=zstd,space_cache=v2,discard=async,subvol=@tmp /dev/mapper/main /mnt/tmp
++ mkdir -p /mnt/boot
++ boot_dir=/boot/efi
++ mkdir -p /mnt/boot/efi
++ mount /dev/nvme0n1p1 /mnt/boot/efi
++ pacstrap -K /mnt base base-devel linux linux-firmware linux-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo intel-ucode
+==> Creating install root at /mnt
+gpg: /mnt/etc/pacman.d/gnupg/trustdb.gpg: trustdb created
+gpg: no ultimately trusted keys found
+gpg: starting migration from earlier GnuPG versions
+gpg: porting secret keys from '/mnt/etc/pacman.d/gnupg/secring.gpg' to gpg-agent
+gpg: migration succeeded
+==> Generating pacman master key. This may take some time.
+gpg: Generating pacman keyring master key...
+gpg: directory '/mnt/etc/pacman.d/gnupg/openpgp-revocs.d' created
+gpg: revocation certificate stored as '/mnt/etc/pacman.d/gnupg/openpgp-revocs.d/50F681B08694BCD304EE630DE0A0813C4A0AD41D.rev'
+gpg: Done
+==> Updating trust database...
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+==> Installing packages to /mnt
+:: Synchronizing package databases...
+ core                         117.3 KiB  1235 KiB/s 00:00 [##############################] 100%
+ extra                          7.8 MiB  34.0 MiB/s 00:00 [##############################] 100%
+:: There are 2 providers available for man:
+:: Repository core
+   1) man-db
+:: Repository extra
+   2) mandoc
+
+Enter a number (default=1):
+resolving dependencies...
+:: There are 2 providers available for libxtables.so=12-64:
+:: Repository core
+   1) iptables  2) iptables-nft
+
+Enter a number (default=1):
+:: There are 3 providers available for initramfs:
+:: Repository core
+   1) mkinitcpio
+:: Repository extra
+   2) booster  3) dracut
+
+Enter a number (default=1):
+looking for conflicting packages...
+warning: dependency cycle detected:
+warning: systemd-libs will be installed before its libcap dependency
+warning: dependency cycle detected:
+warning: harfbuzz will be installed before its freetype2 dependency
+warning: dependency cycle detected:
+warning: mesa will be installed before its libglvnd dependency
+
+Packages (328) abseil-cpp-20250512.0-1  acl-2.3.2-1  adwaita-cursors-48.0-1
+               adwaita-fonts-48.2-1  adwaita-icon-theme-48.0-1
+               adwaita-icon-theme-legacy-46.2-3  alsa-card-profiles-1:1.4.2-1
+               alsa-lib-1.2.14-1  alsa-topology-conf-1.2.5.1-4  alsa-ucm-conf-1.2.14-2
+               archlinux-keyring-20250430.1-1  at-spi2-core-2.56.2-1  attr-2.5.2-1
+               audit-4.0.3-1  autoconf-2.72-1  automake-1.17-1  avahi-1:0.8+r194+g3f79789-3
+               bash-5.2.037-5  binutils-2.44+r94+gfe459e33c676-1  bison-3.8.2-8
+               bluez-libs-5.82-1  brotli-1.1.0-3  bzip2-1.0.8-6  ca-certificates-20240618-1
+               ca-certificates-mozilla-3.111-1  ca-certificates-utils-20240618-1
+               cairo-1.18.4-1  coreutils-9.7-1  cronie-1.7.2-1  cryptsetup-2.7.5-2
+               curl-8.13.0-2  dav1d-1.5.1-1  db5.3-5.3.28-5  dbus-1.16.2-1  dbus-broker-36-4
+               dbus-broker-units-36-4  dbus-units-36-4  dconf-0.40.0-3  debugedit-5.1-1
+               default-cursors-3-1  desktop-file-utils-0.28-1  device-mapper-2.03.32-1
+               diffutils-3.12-2  duktape-2.7.0-7  e2fsprogs-1.47.2-2  efivar-39-1
+               expat-2.7.1-1  fakeroot-1.37.1.2-1  file-5.46-4  filesystem-2025.05.03-1
+               findutils-4.10.0-2  flac-1.5.0-1  flex-2.6.4-5  fontconfig-2:2.16.2-1
+               freetype2-2.13.3-3  fribidi-1.0.16-2  gawk-5.3.2-1  gc-8.2.8-2
+               gcc-15.1.1+r7+gf36ec88aa85a-1  gcc-libs-15.1.1+r7+gf36ec88aa85a-1  gdbm-1.25-1
+               gdk-pixbuf2-2.42.12-2  gettext-0.25-1  glib-networking-1:2.80.1-1
+               glib2-2.84.2-1  glibc-2.41+r48+g5cb575ca9a3d-1  gmp-6.3.0-2
+               gnulib-l10n-20241231-1  gnupg-2.4.7-2  gnutls-3.8.9-1  gpgme-1.24.3-2
+               gpm-1.20.7.r38.ge82d1a6-6  graphene-1.10.8-2  graphite-1:1.3.14-4  grep-3.12-2
+               groff-1.23.0-7  gsettings-desktop-schemas-48.0-1
+               gsettings-system-schemas-48.0-1  gtest-1.17.0-1
+               gtk-update-icon-cache-1:4.18.5-2  gtk3-1:3.24.49-2  guile-3.0.10-1  gzip-1.14-2
+               harfbuzz-11.2.1-1  hicolor-icon-theme-0.18-1  hwdata-0.395-1
+               iana-etc-20250502-1  icu-76.1-1  iproute2-6.14.0-1  iptables-1:1.8.11-2
+               iputils-20240905-1  iso-codes-4.18.0-1  jansson-2.14.1-1  jbigkit-2.1-8
+               json-c-0.18-2  json-glib-1.10.6-1  kbd-2.7.1-2  keyutils-1.6.3-3  kmod-34.2-1
+               krb5-1.21.3-1  lame-3.100-5  lcms2-2.17-1  leancrypto-1.3.0-1  less-1:668-1
+               libarchive-3.8.0-1  libassuan-3.0.0-1  libasyncns-1:0.8+r3+g68cd5af-3
+               libbpf-1.5.0-1  libcap-2.76-1  libcap-ng-0.8.5-3  libcloudproviders-0.3.6-1
+               libcolord-1.4.7-2  libcups-2:2.4.12-2  libdaemon-0.14-6  libdatrie-0.2.13-4
+               libdbusmenu-glib-16.04.0.r498-2  libdbusmenu-gtk3-16.04.0.r498-2
+               libdrm-2.4.124-1  libebur128-1.2.6-2  libedit-20250104_3.1-1  libelf-0.193-2
+               libepoxy-1.5.10-3  libevent-2.1.12-4  libfdk-aac-2.0.3-1  libffi-3.4.8-1
+               libfreeaptx-0.2.2-1  libgcrypt-1.11.1-1  libgee-0.20.8-1  libglvnd-1.7.0-1
+               libgnomekbd-1:3.28.1-1  libgpg-error-1.55-1  libidn2-2.3.7-1  libisl-0.27-1
+               libjpeg-turbo-3.1.0-1  libksba-1.6.7-2  liblc3-1.1.3-1  libldac-2.0.2.3-2
+               libldap-2.6.9-1  libmm-glib-1.24.0-1  libmnl-1.0.5-2  libmpc-1.3.1-2
+               libmysofa-1.3.3-1  libndp-1.9-1  libnetfilter_conntrack-1.0.9-2
+               libnewt-0.52.25-1  libnfnetlink-1.0.2-2  libnftnl-1.2.9-1  libnghttp2-1.65.0-1
+               libnghttp3-1.9.0-1  libnl-3.11.0-1  libnm-1.52.0-1  libnsl-2.0.1-1
+               libogg-1.3.5-2  libp11-kit-0.25.5-1  libpcap-1.10.5-2  libpciaccess-0.18.1-2
+               libpgm-5.3.128-3  libpipeline-1.5.8-1  libpipewire-1:1.4.2-1  libpng-1.6.48-1
+               libproxy-0.5.9-1  libpsl-0.21.5-2  libpulse-17.0+r43+g3e2bb8a1e-1
+               librsvg-2:2.60.0-2  libsasl-2.1.28-5  libseccomp-2.5.6-1  libsecret-0.21.7-1
+               libsndfile-1.2.2-3  libsodium-1.0.20-1  libsoup3-3.6.5-1  libssh2-1.11.1-1
+               libstemmer-3.0.1-1  libsysprof-capture-48.0-5  libtasn1-4.20.0-1
+               libteam-1.32-2  libthai-0.1.29-3  libtiff-4.7.0-1  libtirpc-1.3.6-2
+               libtool-2.5.4+r23+g5b582aed-1  libunistring-1.3-1  libusb-1.0.28-1
+               libverto-0.3.2-5  libvorbis-1.3.7-4  libwireplumber-0.5.10-1  libx11-1.8.12-1
+               libxau-1.0.12-1  libxcb-1.17.0-1  libxcomposite-0.4.6-2  libxcrypt-4.4.38-1
+               libxcursor-1.2.3-1  libxdamage-1.1.6-2  libxdmcp-1.1.5-1  libxext-1.3.6-1
+               libxfixes-6.0.1-2  libxft-2.3.9-1  libxi-1.8.2-1  libxinerama-1.1.5-2
+               libxkbcommon-1.9.2-1  libxkbfile-1.1.3-1  libxklavier-5.4-6  libxml2-2.14.3-1
+               libxrandr-1.5.4-1  libxrender-0.9.12-1  libxshmfence-1.3.3-1  libxtst-1.2.5-1
+               libxxf86vm-1.1.6-1  licenses-20240728-1  lilv-0.24.26-1
+               linux-api-headers-6.14-1  linux-firmware-whence-20250508.788aadc8-2
+               llvm-libs-19.1.7-2  lm_sensors-1:3.6.2-1  lmdb-0.9.33-1  lua-5.4.7-1
+               lv2-1.18.10-1  lz4-1:1.10.0-2  lzo-2.10-5  m4-1.4.20-1  make-4.4.1-2
+               mesa-1:25.1.1-1  mkinitcpio-39.2-3  mkinitcpio-busybox-1.36.1-1
+               mobile-broadband-provider-info-20240407-1  mpdecimal-4.0.1-1  mpfr-4.2.2-1
+               mpg123-1.32.10-1  ncurses-6.5-4  nettle-3.10.1-1  npth-1.8-1  nspr-4.36-1
+               nss-3.111-1  openssl-3.5.0-1  opus-1.5.2-1  p11-kit-0.25.5-1
+               pacman-7.0.0.r6.gc685ae6-2  pacman-mirrorlist-20250522-1  pahole-1:1.30-1
+               pam-1.7.0-2  pambase-20230918-2  pango-1:1.56.3-1  patch-2.8-1
+               pciutils-3.13.0-2  pcre-8.45-4  pcre2-10.45-1  pcsclite-2.3.3-1  perl-5.40.2-1
+               perl-error-0.17030-1  perl-mailtools-2.22-1  perl-timedate-2.33-7
+               pinentry-1.3.1-5  pipewire-audio-1:1.4.2-1  pixman-0.46.0-1  pkgconf-2.4.3-1
+               polkit-126-2  popt-1.19-2  procps-ng-4.0.5-3  psmisc-23.7-1  python-3.13.3-1
+               readline-8.2.013-1  rsync-3.4.1-2  run-parts-5.22-1  sbc-2.0-2  sed-4.9-3
+               serd-0.32.4-1  shadow-4.17.4-1  shared-mime-info-2.4-2  slang-2.3.3-3
+               sord-0.16.18-1  spirv-tools-1:1.4.313.0-1  sqlite-3.49.2-1  sratom-0.6.18-1
+               systemd-257.5-3  systemd-libs-257.5-3  systemd-sysvcompat-257.5-3  tar-1.35-2
+               texinfo-7.2-1  tinysparql-3.9.2-2  tpm2-tss-4.1.3-1  tzdata-2025b-1
+               util-linux-2.41-4  util-linux-libs-2.41-4  vim-runtime-9.1.1376-1
+               vte-common-0.80.1-1  vte3-0.80.1-1  wayland-1.23.1-2
+               webrtc-audio-processing-1-1.3-4  which-2.23-1  wpa_supplicant-2:2.11-3
+               xapp-2.8.9-1  xcb-proto-1.17.0-3  xkeyboard-config-2.44-1  xorg-xkbcomp-1.4.7-1
+               xorg-xprop-1.2.8-1  xorgproto-2024.1-2  xxhash-0.8.3-1  xz-5.8.1-1
+               zeromq-4.3.5-2  zix-0.6.2-1  zlib-1:1.3.1-2  zlib-ng-2.2.4-1  zstd-1.5.7-2
+               base-3-2  base-devel-1-2  btrfs-progs-6.14-1  efibootmgr-18-3  git-2.49.0-2
+               grub-2:2.12.r292.g73d1c959-1  grub-btrfs-4.13-2  inotify-tools-4.23.9.0-2
+               intel-ucode-20250512-1  linux-6.14.7.arch2-1
+               linux-firmware-20250508.788aadc8-2  linux-headers-6.14.7.arch2-1
+               man-db-2.13.1-1  networkmanager-1.52.0-1  openssh-10.0p1-3  pipewire-1:1.4.2-1
+               pipewire-alsa-1:1.4.2-1  pipewire-jack-1:1.4.2-1  pipewire-pulse-1:1.4.2-1
+               reflector-2023-3  sudo-1.9.16.p2-2  timeshift-24.06.6-1  vim-9.1.1376-1
+               wireplumber-0.5.10-1  zsh-5.9-5  zsh-autosuggestions-0.7.1-1
+               zsh-completions-0.35.0-2
+
+Total Download Size:    871.18 MiB
+Total Installed Size:  2378.00 MiB
+
+:: Proceed with installation? [Y/n]
+:: Retrieving packages...
+ gcc-libs-15.1.1+r7+gf36...    35.9 MiB  7.25 MiB/s 00:05 [##############################] 100%
+ llvm-libs-19.1.7-2-x86_64     35.1 MiB  11.5 MiB/s 00:03 [##############################] 100%
+ linux-6.14.7.arch2-1-x86_64  139.3 MiB  16.9 MiB/s 00:08 [##############################] 100%
+ gcc-15.1.1+r7+gf36ec88a...    54.0 MiB  6.55 MiB/s 00:08 [##############################] 100%
+ python-3.13.3-1-x86_64        12.2 MiB  18.9 MiB/s 00:01 [##############################] 100%
+ icu-76.1-1-x86_64             11.4 MiB  9.65 MiB/s 00:01 [##############################] 100%
+ perl-5.40.2-1-x86_64          20.0 MiB  14.4 MiB/s 00:01 [##############################] 100%
+ intel-ucode-20250512-1-any    10.4 MiB  17.2 MiB/s 00:01 [##############################] 100%
+ systemd-257.5-3-x86_64         8.8 MiB  19.5 MiB/s 00:00 [##############################] 100%
+ glibc-2.41+r48+g5cb575c...    10.0 MiB  17.3 MiB/s 00:01 [##############################] 100%
+ mesa-1:25.1.1-1-x86_64        10.2 MiB  11.5 MiB/s 00:01 [##############################] 100%
+ guile-3.0.10-1-x86_64          8.3 MiB  18.8 MiB/s 00:00 [##############################] 100%
+ gtk3-1:3.24.49-2-x86_64        8.7 MiB  17.9 MiB/s 00:00 [##############################] 100%
+ vim-runtime-9.1.1376-1-...     7.5 MiB  16.9 MiB/s 00:00 [##############################] 100%
+ grub-2:2.12.r292.g73d1c...     7.1 MiB  16.4 MiB/s 00:00 [##############################] 100%
+ binutils-2.44+r94+gfe45...     7.7 MiB  12.2 MiB/s 00:01 [##############################] 100%
+ openssl-3.5.0-1-x86_64         5.2 MiB  16.2 MiB/s 00:00 [##############################] 100%
+ git-2.49.0-2-x86_64            6.6 MiB  18.4 MiB/s 00:00 [##############################] 100%
+ util-linux-2.41-4-x86_64       5.1 MiB  13.2 MiB/s 00:00 [##############################] 100%
+ opus-1.5.2-1-x86_64            4.3 MiB  16.1 MiB/s 00:00 [##############################] 100%
+ glib2-2.84.2-1-x86_64          4.9 MiB  15.6 MiB/s 00:00 [##############################] 100%
+ networkmanager-1.52.0-1...     3.6 MiB  11.7 MiB/s 00:00 [##############################] 100%
+ iso-codes-4.18.0-1-any         3.4 MiB  15.8 MiB/s 00:00 [##############################] 100%
+ gettext-0.25-1-x86_64          2.8 MiB  13.6 MiB/s 00:00 [##############################] 100%
+ gnupg-2.4.7-2-x86_64           2.8 MiB  12.5 MiB/s 00:00 [##############################] 100%
+ coreutils-9.7-1-x86_64         2.8 MiB  20.6 MiB/s 00:00 [##############################] 100%
+ groff-1.23.0-7-x86_64          2.3 MiB  16.7 MiB/s 00:00 [##############################] 100%
+ vim-9.1.1376-1-x86_64          2.3 MiB  7.90 MiB/s 00:00 [##############################] 100%
+ librsvg-2:2.60.0-2-x86_64      2.3 MiB  5.12 MiB/s 00:00 [##############################] 100%
+ zsh-5.9-5-x86_64               2.2 MiB  16.7 MiB/s 00:00 [##############################] 100%
+ sqlite-3.49.2-1-x86_64         2.2 MiB  12.9 MiB/s 00:00 [##############################] 100%
+ adwaita-fonts-48.2-1-any       2.1 MiB  9.50 MiB/s 00:00 [##############################] 100%
+ libx11-1.8.12-1-x86_64         2.0 MiB  6.65 MiB/s 00:00 [##############################] 100%
+ adwaita-icon-theme-lega...     2.2 MiB  5.90 MiB/s 00:00 [##############################] 100%
+ texinfo-7.2-1-x86_64        2035.9 KiB  15.3 MiB/s 00:00 [##############################] 100%
+ sudo-1.9.16.p2-2-x86_64     1923.0 KiB  12.5 MiB/s 00:00 [##############################] 100%
+ gnutls-3.8.9-1-x86_64       1796.1 KiB  11.3 MiB/s 00:00 [##############################] 100%
+ bash-5.2.037-5-x86_64       1845.9 KiB  6.99 MiB/s 00:00 [##############################] 100%
+ spirv-tools-1:1.4.313.0...  1769.6 KiB  12.6 MiB/s 00:00 [##############################] 100%
+ linux-headers-6.14.7.ar...    50.3 MiB  3.75 MiB/s 00:13 [##############################] 100%
+ wpa_supplicant-2:2.11-3...  1736.5 KiB  13.4 MiB/s 00:00 [##############################] 100%
+ hwdata-0.395-1-any          1668.7 KiB  8.95 MiB/s 00:00 [##############################] 100%
+ nss-3.111-1-x86_64          1649.3 KiB  10.1 MiB/s 00:00 [##############################] 100%
+ pcre2-10.45-1-x86_64        1619.7 KiB  10.1 MiB/s 00:00 [##############################] 100%
+ pipewire-audio-1:1.4.2-...  1555.0 KiB  11.3 MiB/s 00:00 [##############################] 100%
+ gawk-5.3.2-1-x86_64         1462.4 KiB  10.8 MiB/s 00:00 [##############################] 100%
+ linux-api-headers-6.14-...  1301.5 KiB  10.3 MiB/s 00:00 [##############################] 100%
+ openssh-10.0p1-3-x86_64     1265.3 KiB  9.50 MiB/s 00:00 [##############################] 100%
+ krb5-1.21.3-1-x86_64        1310.1 KiB  6.88 MiB/s 00:00 [##############################] 100%
+ e2fsprogs-1.47.2-2-x86_64   1264.2 KiB  9.72 MiB/s 00:00 [##############################] 100%
+ kbd-2.7.1-2-x86_64          1252.8 KiB  9.34 MiB/s 00:00 [##############################] 100%
+ btrfs-progs-6.14-1-x86_64   1250.5 KiB  8.79 MiB/s 00:00 [##############################] 100%
+ shadow-4.17.4-1-x86_64      1244.6 KiB  6.57 MiB/s 00:00 [##############################] 100%
+ abseil-cpp-20250512.0-1...  1226.4 KiB  5.65 MiB/s 00:00 [##############################] 100%
+ systemd-libs-257.5-3-x86_64 1224.1 KiB  5.77 MiB/s 00:00 [##############################] 100%
+ db5.3-5.3.28-5-x86_64       1213.0 KiB  5.59 MiB/s 00:00 [##############################] 100%
+ linux-firmware-20250508...   274.2 MiB  19.2 MiB/s 00:14 [##############################] 100%
+ archlinux-keyring-20250...  1208.4 KiB  8.87 MiB/s 00:00 [##############################] 100%
+ ncurses-6.5-4-x86_64        1158.7 KiB  15.7 MiB/s 00:00 [##############################] 100%
+ curl-8.13.0-2-x86_64        1188.7 KiB  11.8 MiB/s 00:00 [##############################] 100%
+ man-db-2.13.1-1-x86_64      1169.0 KiB  12.3 MiB/s 00:00 [##############################] 100%
+ iproute2-6.14.0-1-x86_64    1127.1 KiB  10.9 MiB/s 00:00 [##############################] 100%
+ harfbuzz-11.2.1-1-x86_64    1121.2 KiB  15.2 MiB/s 00:00 [##############################] 100%
+ tinysparql-3.9.2-2-x86_64   1063.4 KiB  14.6 MiB/s 00:00 [##############################] 100%
+ libmysofa-1.3.3-1-x86_64    1136.1 KiB  7.55 MiB/s 00:00 [##############################] 100%
+ pcre-8.45-4-x86_64          1000.8 KiB  12.7 MiB/s 00:00 [##############################] 100%
+ libxcb-1.17.0-1-x86_64       996.0 KiB  17.1 MiB/s 00:00 [##############################] 100%
+ tpm2-tss-4.1.3-1-x86_64      938.8 KiB  13.9 MiB/s 00:00 [##############################] 100%
+ libnm-1.52.0-1-x86_64        886.6 KiB  11.0 MiB/s 00:00 [##############################] 100%
+ libisl-0.27-1-x86_64         886.4 KiB  11.1 MiB/s 00:00 [##############################] 100%
+ pacman-7.0.0.r6.gc685ae...   924.3 KiB  8.76 MiB/s 00:00 [##############################] 100%
+ xkeyboard-config-2.44-1-any  881.2 KiB  13.7 MiB/s 00:00 [##############################] 100%
+ procps-ng-4.0.5-3-x86_64     873.6 KiB  13.3 MiB/s 00:00 [##############################] 100%
+ xz-5.8.1-1-x86_64            812.1 KiB  9.79 MiB/s 00:00 [##############################] 100%
+ slang-2.3.3-3-x86_64         810.4 KiB  9.77 MiB/s 00:00 [##############################] 100%
+ libxml2-2.14.3-1-x86_64      794.6 KiB  9.46 MiB/s 00:00 [##############################] 100%
+ tar-1.35-2-x86_64            777.6 KiB  11.7 MiB/s 00:00 [##############################] 100%
+ libcap-2.76-1-x86_64         774.9 KiB  8.41 MiB/s 00:00 [##############################] 100%
+ cryptsetup-2.7.5-2-x86_64    754.9 KiB  21.1 MiB/s 00:00 [##############################] 100%
+ gsettings-desktop-schem...   733.3 KiB  12.1 MiB/s 00:00 [##############################] 100%
+ bison-3.8.2-8-x86_64         766.3 KiB  10.4 MiB/s 00:00 [##############################] 100%
+ timeshift-24.06.6-1-x86_64   764.7 KiB  10.1 MiB/s 00:00 [##############################] 100%
+ libgcrypt-1.11.1-1-x86_64    715.2 KiB  13.4 MiB/s 00:00 [##############################] 100%
+ autoconf-2.72-1-any          650.5 KiB  11.6 MiB/s 00:00 [##############################] 100%
+ libunistring-1.3-1-x86_64    722.3 KiB  7.43 MiB/s 00:00 [##############################] 100%
+ leancrypto-1.3.0-1-x86_64    717.7 KiB  8.76 MiB/s 00:00 [##############################] 100%
+ libfdk-aac-2.0.3-1-x86_64    699.8 KiB  8.65 MiB/s 00:00 [##############################] 100%
+ automake-1.17-1-any          626.6 KiB  21.9 MiB/s 00:00 [##############################] 100%
+ pipewire-1:1.4.2-1-x86_64    647.5 KiB  11.9 MiB/s 00:00 [##############################] 100%
+ cairo-1.18.4-1-x86_64        620.1 KiB  11.6 MiB/s 00:00 [##############################] 100%
+ dav1d-1.5.1-1-x86_64         639.2 KiB  9.05 MiB/s 00:00 [##############################] 100%
+ libelf-0.193-2-x86_64        614.8 KiB  8.34 MiB/s 00:00 [##############################] 100%
+ shared-mime-info-2.4-2-...   614.4 KiB  11.5 MiB/s 00:00 [##############################] 100%
+ pam-1.7.0-2-x86_64           593.8 KiB  10.5 MiB/s 00:00 [##############################] 100%
+ at-spi2-core-2.56.2-1-x...   572.9 KiB  9.65 MiB/s 00:00 [##############################] 100%
+ zeromq-4.3.5-2-x86_64        569.1 KiB  9.11 MiB/s 00:00 [##############################] 100%
+ libjpeg-turbo-3.1.0-1-x...   568.5 KiB  9.74 MiB/s 00:00 [##############################] 100%
+ libmm-glib-1.24.0-1-x86_64   566.5 KiB  8.38 MiB/s 00:00 [##############################] 100%
+ freetype2-2.13.3-3-x86_64    525.9 KiB  10.3 MiB/s 00:00 [##############################] 100%
+ libarchive-3.8.0-1-x86_64    558.4 KiB  9.74 MiB/s 00:00 [##############################] 100%
+ webrtc-audio-processing...   525.3 KiB  8.27 MiB/s 00:00 [##############################] 100%
+ make-4.4.1-2-x86_64          523.8 KiB  9.47 MiB/s 00:00 [##############################] 100%
+ zstd-1.5.7-2-x86_64          510.6 KiB  19.2 MiB/s 00:00 [##############################] 100%
+ gdk-pixbuf2-2.42.12-2-x...   518.4 KiB  9.93 MiB/s 00:00 [##############################] 100%
+ libtiff-4.7.0-1-x86_64       496.1 KiB  12.4 MiB/s 00:00 [##############################] 100%
+ util-linux-libs-2.41-4-...   488.0 KiB  14.4 MiB/s 00:00 [##############################] 100%
+ alsa-lib-1.2.14-1-x86_64     491.5 KiB  8.42 MiB/s 00:00 [##############################] 100%
+ gpgme-1.24.3-2-x86_64        463.5 KiB  13.3 MiB/s 00:00 [##############################] 100%
+ findutils-4.10.0-2-x86_64    473.4 KiB  9.06 MiB/s 00:00 [##############################] 100%
+ nettle-3.10.1-1-x86_64       458.5 KiB  9.53 MiB/s 00:00 [##############################] 100%
+ libpipewire-1:1.4.2-1-x...   457.9 KiB  8.28 MiB/s 00:00 [##############################] 100%
+ gmp-6.3.0-2-x86_64           442.9 KiB  12.7 MiB/s 00:00 [##############################] 100%
+ libp11-kit-0.25.5-1-x86_64   456.9 KiB  8.92 MiB/s 00:00 [##############################] 100%
+ mpg123-1.32.10-1-x86_64      439.5 KiB  10.2 MiB/s 00:00 [##############################] 100%
+ mpfr-4.2.2-1-x86_64          436.8 KiB  8.89 MiB/s 00:00 [##############################] 100%
+ file-5.46-4-x86_64           432.3 KiB  8.98 MiB/s 00:00 [##############################] 100%
+ libtool-2.5.4+r23+g5b58...   423.9 KiB  11.2 MiB/s 00:00 [##############################] 100%
+ avahi-1:0.8+r194+g3f797...   426.3 KiB  9.46 MiB/s 00:00 [##############################] 100%
+ pango-1:1.56.3-1-x86_64      421.4 KiB  10.3 MiB/s 00:00 [##############################] 100%
+ polkit-126-2-x86_64          403.2 KiB  16.4 MiB/s 00:00 [##############################] 100%
+ libnl-3.11.0-1-x86_64        410.3 KiB  11.1 MiB/s 00:00 [##############################] 100%
+ iptables-1:1.8.11-2-x86_64   419.0 KiB  8.52 MiB/s 00:00 [##############################] 100%
+ libpulse-17.0+r43+g3e2b...   400.2 KiB  9.31 MiB/s 00:00 [##############################] 100%
+ audit-4.0.3-1-x86_64         397.1 KiB  14.4 MiB/s 00:00 [##############################] 100%
+ iana-etc-20250502-1-any      398.7 KiB  5.99 MiB/s 00:00 [##############################] 100%
+ libsoup3-3.6.5-1-x86_64      392.6 KiB  11.0 MiB/s 00:00 [##############################] 100%
+ brotli-1.1.0-3-x86_64        389.6 KiB  8.85 MiB/s 00:00 [##############################] 100%
+ ca-certificates-mozilla...   386.3 KiB  6.86 MiB/s 00:00 [##############################] 100%
+ gtest-1.17.0-1-x86_64        384.8 KiB  12.1 MiB/s 00:00 [##############################] 100%
+ vte3-0.80.1-1-x86_64         366.0 KiB  11.5 MiB/s 00:00 [##############################] 100%
+ fontconfig-2:2.16.2-1-x...   368.1 KiB  7.99 MiB/s 00:00 [##############################] 100%
+ adwaita-cursors-48.0-1-any   359.6 KiB  13.5 MiB/s 00:00 [##############################] 100%
+ rsync-3.4.1-2-x86_64         363.1 KiB  5.81 MiB/s 00:00 [##############################] 100%
+ tzdata-2025b-1-x86_64        347.2 KiB  13.0 MiB/s 00:00 [##############################] 100%
+ lua-5.4.7-1-x86_64           357.1 KiB  8.11 MiB/s 00:00 [##############################] 100%
+ libglvnd-1.7.0-1-x86_64      355.9 KiB  6.32 MiB/s 00:00 [##############################] 100%
+ dbus-1.16.2-1-x86_64         346.1 KiB  12.5 MiB/s 00:00 [##############################] 100%
+ libdrm-2.4.124-1-x86_64      342.7 KiB  15.2 MiB/s 00:00 [##############################] 100%
+ lame-3.100-5-x86_64          330.3 KiB  14.7 MiB/s 00:00 [##############################] 100%
+ diffutils-3.12-2-x86_64      341.9 KiB  7.95 MiB/s 00:00 [##############################] 100%
+ flac-1.5.0-1-x86_64          335.2 KiB  8.61 MiB/s 00:00 [##############################] 100%
+ pahole-1:1.30-1-x86_64       329.0 KiB  7.84 MiB/s 00:00 [##############################] 100%
+ libsndfile-1.2.2-3-x86_64    315.5 KiB  10.6 MiB/s 00:00 [##############################] 100%
+ readline-8.2.013-1-x86_64    324.6 KiB  6.60 MiB/s 00:00 [##############################] 100%
+ flex-2.6.4-5-x86_64          307.5 KiB  6.83 MiB/s 00:00 [##############################] 100%
+ libpcap-1.10.5-2-x86_64      287.7 KiB  8.78 MiB/s 00:00 [##############################] 100%
+ libepoxy-1.5.10-3-x86_64     305.3 KiB  6.93 MiB/s 00:00 [##############################] 100%
+ pixman-0.46.0-1-x86_64       281.9 KiB  7.65 MiB/s 00:00 [##############################] 100%
+ device-mapper-2.03.32-1...   280.2 KiB  11.9 MiB/s 00:00 [##############################] 100%
+ libldap-2.6.9-1-x86_64       281.3 KiB  5.97 MiB/s 00:00 [##############################] 100%
+ libgee-0.20.8-1-x86_64       279.2 KiB  8.26 MiB/s 00:00 [##############################] 100%
+ libthai-0.1.29-3-x86_64      275.3 KiB  8.40 MiB/s 00:00 [##############################] 100%
+ mkinitcpio-busybox-1.36...   277.5 KiB  7.32 MiB/s 00:00 [##############################] 100%
+ libwireplumber-0.5.10-1...   274.8 KiB  6.55 MiB/s 00:00 [##############################] 100%
+ libcups-2:2.4.12-2-x86_64    272.2 KiB  7.82 MiB/s 00:00 [##############################] 100%
+ m4-1.4.20-1-x86_64           270.6 KiB  6.78 MiB/s 00:00 [##############################] 100%
+ libgpg-error-1.55-1-x86_64   269.1 KiB  11.0 MiB/s 00:00 [##############################] 100%
+ libevent-2.1.12-4-x86_64     267.4 KiB  7.91 MiB/s 00:00 [##############################] 100%
+ libbpf-1.5.0-1-x86_64        262.5 KiB  6.41 MiB/s 00:00 [##############################] 100%
+ psmisc-23.7-1-x86_64         259.8 KiB  6.19 MiB/s 00:00 [##############################] 100%
+ gdbm-1.25-1-x86_64           253.9 KiB  7.51 MiB/s 00:00 [##############################] 100%
+ zsh-completions-0.35.0-...   253.1 KiB  9.16 MiB/s 00:00 [##############################] 100%
+ libpng-1.6.48-1-x86_64       253.1 KiB  6.87 MiB/s 00:00 [##############################] 100%
+ libssh2-1.11.1-1-x86_64      252.6 KiB  6.33 MiB/s 00:00 [##############################] 100%
+ libxkbcommon-1.9.2-1-x86_64  237.8 KiB  8.30 MiB/s 00:00 [##############################] 100%
+ xorgproto-2024.1-2-any       241.2 KiB  5.89 MiB/s 00:00 [##############################] 100%
+ grep-3.12-2-x86_64           235.6 KiB  7.42 MiB/s 00:00 [##############################] 100%
+ wireplumber-0.5.10-1-x86_64  234.8 KiB  6.03 MiB/s 00:00 [##############################] 100%
+ gc-8.2.8-2-x86_64            234.5 KiB  7.90 MiB/s 00:00 [##############################] 100%
+ p11-kit-0.25.5-1-x86_64      223.0 KiB  6.05 MiB/s 00:00 [##############################] 100%
+ xapp-2.8.9-1-x86_64          216.7 KiB  7.56 MiB/s 00:00 [##############################] 100%
+ lcms2-2.17-1-x86_64          220.0 KiB  5.65 MiB/s 00:00 [##############################] 100%
+ sed-4.9-3-x86_64             210.5 KiB  4.67 MiB/s 00:00 [##############################] 100%
+ pipewire-pulse-1:1.4.2-...   201.7 KiB  7.29 MiB/s 00:00 [##############################] 100%
+ nspr-4.36-1-x86_64           197.0 KiB  6.01 MiB/s 00:00 [##############################] 100%
+ adwaita-icon-theme-48.0...   198.4 KiB  5.10 MiB/s 00:00 [##############################] 100%
+ libogg-1.3.5-2-x86_64        197.5 KiB  3.38 MiB/s 00:00 [##############################] 100%
+ libcolord-1.4.7-2-x86_64     186.8 KiB  5.88 MiB/s 00:00 [##############################] 100%
+ libsecret-0.21.7-1-x86_64    188.2 KiB  5.25 MiB/s 00:00 [##############################] 100%
+ libsodium-1.0.20-1-x86_64    182.0 KiB  4.23 MiB/s 00:00 [##############################] 100%
+ pinentry-1.3.1-5-x86_64      184.5 KiB  3.28 MiB/s 00:00 [##############################] 100%
+ libvorbis-1.3.7-4-x86_64     182.0 KiB  6.35 MiB/s 00:00 [##############################] 100%
+ libpgm-5.3.128-3-x86_64      177.9 KiB  5.43 MiB/s 00:00 [##############################] 100%
+ duktape-2.7.0-7-x86_64       176.2 KiB  3.51 MiB/s 00:00 [##############################] 100%
+ json-glib-1.10.6-1-x86_64    172.1 KiB  7.31 MiB/s 00:00 [##############################] 100%
+ inotify-tools-4.23.9.0-...   167.5 KiB  6.29 MiB/s 00:00 [##############################] 100%
+ libtirpc-1.3.6-2-x86_64      172.8 KiB  4.02 MiB/s 00:00 [##############################] 100%
+ pipewire-jack-1:1.4.2-1...   160.7 KiB  4.76 MiB/s 00:00 [##############################] 100%
+ lv2-1.18.10-1-x86_64         158.1 KiB  4.41 MiB/s 00:00 [##############################] 100%
+ lz4-1:1.10.0-2-x86_64        156.3 KiB  7.27 MiB/s 00:00 [##############################] 100%
+ libxi-1.8.2-1-x86_64         150.5 KiB  4.74 MiB/s 00:00 [##############################] 100%
+ dbus-broker-36-4-x86_64      145.0 KiB  4.88 MiB/s 00:00 [##############################] 100%
+ libsasl-2.1.28-5-x86_64      146.6 KiB  3.18 MiB/s 00:00 [##############################] 100%
+ efivar-39-1-x86_64           144.7 KiB  5.23 MiB/s 00:00 [##############################] 100%
+ less-1:668-1-x86_64          142.4 KiB  3.97 MiB/s 00:00 [##############################] 100%
+ libgnomekbd-1:3.28.1-1-...   142.3 KiB  3.66 MiB/s 00:00 [##############################] 100%
+ libksba-1.6.7-2-x86_64       142.2 KiB  4.34 MiB/s 00:00 [##############################] 100%
+ glib-networking-1:2.80....   140.4 KiB  4.28 MiB/s 00:00 [##############################] 100%
+ wayland-1.23.1-2-x86_64      140.1 KiB  6.52 MiB/s 00:00 [##############################] 100%
+ libidn2-2.3.7-1-x86_64       139.8 KiB  4.55 MiB/s 00:00 [##############################] 100%
+ pciutils-3.13.0-2-x86_64     139.0 KiB  4.11 MiB/s 00:00 [##############################] 100%
+ acl-2.3.2-1-x86_64           137.8 KiB  4.64 MiB/s 00:00 [##############################] 100%
+ gpm-1.20.7.r38.ge82d1a6...   135.7 KiB  4.73 MiB/s 00:00 [##############################] 100%
+ libstemmer-3.0.1-1-x86_64    135.4 KiB  4.27 MiB/s 00:00 [##############################] 100%
+ lm_sensors-1:3.6.2-1-x86_64  133.6 KiB  4.83 MiB/s 00:00 [##############################] 100%
+ libtasn1-4.20.0-1-x86_64     133.4 KiB  5.01 MiB/s 00:00 [##############################] 100%
+ kmod-34.2-1-x86_64           130.3 KiB  3.74 MiB/s 00:00 [##############################] 100%
+ xcb-proto-1.17.0-3-any       128.5 KiB  3.69 MiB/s 00:00 [##############################] 100%
+ expat-2.7.1-1-x86_64         116.5 KiB  5.69 MiB/s 00:00 [##############################] 100%
+ gnulib-l10n-20241231-1-any   124.0 KiB  5.05 MiB/s 00:00 [##############################] 100%
+ iputils-20240905-1-x86_64    125.8 KiB  2.92 MiB/s 00:00 [##############################] 100%
+ liblc3-1.1.3-1-x86_64        116.3 KiB  3.66 MiB/s 00:00 [##############################] 100%
+ libedit-20250104_3.1-1-...   112.3 KiB  3.78 MiB/s 00:00 [##############################] 100%
+ libdatrie-0.2.13-4-x86_64    114.2 KiB  3.02 MiB/s 00:00 [##############################] 100%
+ lmdb-0.9.33-1-x86_64         116.3 KiB  2.99 MiB/s 00:00 [##############################] 100%
+ libassuan-3.0.0-1-x86_64     112.2 KiB  3.22 MiB/s 00:00 [##############################] 100%
+ alsa-ucm-conf-1.2.14-2-any   112.1 KiB  4.06 MiB/s 00:00 [##############################] 100%
+ libxext-1.3.6-1-x86_64       106.0 KiB  4.50 MiB/s 00:00 [##############################] 100%
+ libteam-1.32-2-x86_64        109.9 KiB  3.70 MiB/s 00:00 [##############################] 100%
+ graphene-1.10.8-2-x86_64     106.0 KiB  3.24 MiB/s 00:00 [##############################] 100%
+ licenses-20240728-1-any      105.7 KiB  2.95 MiB/s 00:00 [##############################] 100%
+ dconf-0.40.0-3-x86_64        105.4 KiB  3.43 MiB/s 00:00 [##############################] 100%
+ keyutils-1.6.3-3-x86_64      102.0 KiB  3.99 MiB/s 00:00 [##############################] 100%
+ mpdecimal-4.0.1-1-x86_64     103.2 KiB  2.88 MiB/s 00:00 [##############################] 100%
+ zlib-ng-2.2.4-1-x86_64       101.4 KiB  3.42 MiB/s 00:00 [##############################] 100%
+ pcsclite-2.3.3-1-x86_64       99.5 KiB  3.60 MiB/s 00:00 [##############################] 100%
+ xxhash-0.8.3-1-x86_64         98.0 KiB  3.54 MiB/s 00:00 [##############################] 100%
+ zlib-1:1.3.1-2-x86_64         92.3 KiB  4.29 MiB/s 00:00 [##############################] 100%
+ bluez-libs-5.82-1-x86_64      91.6 KiB  3.89 MiB/s 00:00 [##############################] 100%
+ libnghttp2-1.65.0-1-x86_64    93.2 KiB  2.84 MiB/s 00:00 [##############################] 100%
+ libnewt-0.52.25-1-x86_64      91.9 KiB  2.36 MiB/s 00:00 [##############################] 100%
+ cronie-1.7.2-1-x86_64         90.3 KiB  3.53 MiB/s 00:00 [##############################] 100%
+ libdbusmenu-glib-16.04....    89.3 KiB  3.96 MiB/s 00:00 [##############################] 100%
+ xorg-xkbcomp-1.4.7-1-x86_64   90.0 KiB  2.83 MiB/s 00:00 [##############################] 100%
+ lzo-2.10-5-x86_64             87.8 KiB  3.06 MiB/s 00:00 [##############################] 100%
+ libseccomp-2.5.6-1-x86_64     88.7 KiB  1888 KiB/s 00:00 [##############################] 100%
+ jansson-2.14.1-1-x86_64       87.3 KiB  2.51 MiB/s 00:00 [##############################] 100%
+ libpsl-0.21.5-2-x86_64        86.8 KiB  2.73 MiB/s 00:00 [##############################] 100%
+ gzip-1.14-2-x86_64            86.7 KiB  3.02 MiB/s 00:00 [##############################] 100%
+ patch-2.8-1-x86_64            85.2 KiB  2.60 MiB/s 00:00 [##############################] 100%
+ libmpc-1.3.1-2-x86_64         85.2 KiB  2.77 MiB/s 00:00 [##############################] 100%
+ libxcrypt-4.4.38-1-x86_64     84.6 KiB  3.31 MiB/s 00:00 [##############################] 100%
+ graphite-1:1.3.14-4-x86_64    83.5 KiB  3.02 MiB/s 00:00 [##############################] 100%
+ fakeroot-1.37.1.2-1-x86_64    77.2 KiB  3.43 MiB/s 00:00 [##############################] 100%
+ libxkbfile-1.1.3-1-x86_64     76.5 KiB  2.34 MiB/s 00:00 [##############################] 100%
+ popt-1.19-2-x86_64            76.3 KiB  3.92 MiB/s 00:00 [##############################] 100%
+ libusb-1.0.28-1-x86_64        75.0 KiB  2.93 MiB/s 00:00 [##############################] 100%
+ lilv-0.24.26-1-x86_64         73.9 KiB  2.19 MiB/s 00:00 [##############################] 100%
+ libnghttp3-1.9.0-1-x86_64     73.4 KiB  2.66 MiB/s 00:00 [##############################] 100%
+ libnftnl-1.2.9-1-x86_64       69.9 KiB  2.73 MiB/s 00:00 [##############################] 100%
+ fribidi-1.0.16-2-x86_64       71.1 KiB  1976 KiB/s 00:00 [##############################] 100%
+ attr-2.5.2-1-x86_64           68.4 KiB  2.16 MiB/s 00:00 [##############################] 100%
+ pkgconf-2.4.3-1-x86_64        64.4 KiB  2.62 MiB/s 00:00 [##############################] 100%
+ libxklavier-5.4-6-x86_64      68.0 KiB  2.37 MiB/s 00:00 [##############################] 100%
+ mkinitcpio-39.2-3-any         64.2 KiB  1605 KiB/s 00:00 [##############################] 100%
+ libcloudproviders-0.3.6...    63.8 KiB  1725 KiB/s 00:00 [##############################] 100%
+ mobile-broadband-provid...    62.4 KiB  1783 KiB/s 00:00 [##############################] 100%
+ libxft-2.3.9-1-x86_64         60.4 KiB  1831 KiB/s 00:00 [##############################] 100%
+ serd-0.32.4-1-x86_64          61.2 KiB  1701 KiB/s 00:00 [##############################] 100%
+ json-c-0.18-2-x86_64          58.5 KiB  2.12 MiB/s 00:00 [##############################] 100%
+ bzip2-1.0.8-6-x86_64          58.4 KiB  1825 KiB/s 00:00 [##############################] 100%
+ perl-mailtools-2.22-1-any     58.1 KiB  1709 KiB/s 00:00 [##############################] 100%
+ jbigkit-2.1-8-x86_64          52.2 KiB  1864 KiB/s 00:00 [##############################] 100%
+ vte-common-0.80.1-1-x86_64    55.7 KiB  1590 KiB/s 00:00 [##############################] 100%
+ libsysprof-capture-48.0...    49.3 KiB  1371 KiB/s 00:00 [##############################] 100%
+ sbc-2.0-2-x86_64              48.5 KiB  1797 KiB/s 00:00 [##############################] 100%
+ libdbusmenu-gtk3-16.04....    48.4 KiB  1863 KiB/s 00:00 [##############################] 100%
+ libnetfilter_conntrack-...    47.6 KiB  1441 KiB/s 00:00 [##############################] 100%
+ libffi-3.4.8-1-x86_64         46.0 KiB  1484 KiB/s 00:00 [##############################] 100%
+ debugedit-5.1-1-x86_64        43.6 KiB  1614 KiB/s 00:00 [##############################] 100%
+ desktop-file-utils-0.28...    42.5 KiB  1330 KiB/s 00:00 [##############################] 100%
+ libcap-ng-0.8.5-3-x86_64      41.6 KiB  1301 KiB/s 00:00 [##############################] 100%
+ zix-0.6.2-1-x86_64            41.4 KiB  1381 KiB/s 00:00 [##############################] 100%
+ libpipeline-1.5.8-1-x86_64    40.7 KiB  1630 KiB/s 00:00 [##############################] 100%
+ linux-firmware-whence-2...    39.5 KiB  1274 KiB/s 00:00 [##############################] 100%
+ reflector-2023-3-any          39.0 KiB  1443 KiB/s 00:00 [##############################] 100%
+ sord-0.16.18-1-x86_64         35.4 KiB  1476 KiB/s 00:00 [##############################] 100%
+ grub-btrfs-4.13-2-any         35.4 KiB  1768 KiB/s 00:00 [##############################] 100%
+ libldac-2.0.2.3-2-x86_64      34.5 KiB  1231 KiB/s 00:00 [##############################] 100%
+ perl-timedate-2.33-7-any      33.1 KiB  1004 KiB/s 00:00 [##############################] 100%
+ libxcursor-1.2.3-1-x86_64     33.0 KiB  1268 KiB/s 00:00 [##############################] 100%
+ efibootmgr-18-3-x86_64        30.1 KiB  1368 KiB/s 00:00 [##############################] 100%
+ run-parts-5.22-1-x86_64       31.9 KiB  1029 KiB/s 00:00 [##############################] 100%
+ libproxy-0.5.9-1-x86_64       29.5 KiB   922 KiB/s 00:00 [##############################] 100%
+ libxrender-0.9.12-1-x86_64    29.4 KiB  1129 KiB/s 00:00 [##############################] 100%
+ libxtst-1.2.5-1-x86_64        29.0 KiB  1035 KiB/s 00:00 [##############################] 100%
+ npth-1.8-1-x86_64             28.2 KiB  1045 KiB/s 00:00 [##############################] 100%
+ alsa-card-profiles-1:1....    27.4 KiB  1013 KiB/s 00:00 [##############################] 100%
+ libxrandr-1.5.4-1-x86_64      27.3 KiB   973 KiB/s 00:00 [##############################] 100%
+ libxdmcp-1.1.5-1-x86_64       27.1 KiB   732 KiB/s 00:00 [##############################] 100%
+ xorg-xprop-1.2.8-1-x86_64     25.8 KiB   859 KiB/s 00:00 [##############################] 100%
+ libnsl-2.0.1-1-x86_64         21.7 KiB   678 KiB/s 00:00 [##############################] 100%
+ libpciaccess-0.18.1-2-x...    21.5 KiB   829 KiB/s 00:00 [##############################] 100%
+ perl-error-0.17030-1-any      21.2 KiB   708 KiB/s 00:00 [##############################] 100%
+ sratom-0.6.18-1-x86_64        19.5 KiB   888 KiB/s 00:00 [##############################] 100%
+ libndp-1.9-1-x86_64           19.5 KiB   672 KiB/s 00:00 [##############################] 100%
+ libdaemon-0.14-6-x86_64       19.2 KiB   914 KiB/s 00:00 [##############################] 100%
+ libfreeaptx-0.2.2-1-x86_64    19.0 KiB   614 KiB/s 00:00 [##############################] 100%
+ libverto-0.3.2-5-x86_64       18.3 KiB   610 KiB/s 00:00 [##############################] 100%
+ libebur128-1.2.6-2-x86_64     17.5 KiB   699 KiB/s 00:00 [##############################] 100%
+ libnfnetlink-1.0.2-2-x86_64   17.0 KiB   631 KiB/s 00:00 [##############################] 100%
+ libasyncns-1:0.8+r3+g68...    16.9 KiB   545 KiB/s 00:00 [##############################] 100%
+ gtk-update-icon-cache-1...    16.8 KiB   766 KiB/s 00:00 [##############################] 100%
+ which-2.23-1-x86_64           16.0 KiB   499 KiB/s 00:00 [##############################] 100%
+ zsh-autosuggestions-0.7...    15.6 KiB   652 KiB/s 00:00 [##############################] 100%
+ libxxf86vm-1.1.6-1-x86_64     15.5 KiB   673 KiB/s 00:00 [##############################] 100%
+ filesystem-2025.05.03-1-any   14.5 KiB   559 KiB/s 00:00 [##############################] 100%
+ libxfixes-6.0.1-2-x86_64      13.6 KiB   378 KiB/s 00:00 [##############################] 100%
+ alsa-topology-conf-1.2....    13.5 KiB   422 KiB/s 00:00 [##############################] 100%
+ libxcomposite-0.4.6-2-x...    11.6 KiB   481 KiB/s 00:00 [##############################] 100%
+ hicolor-icon-theme-0.18...    13.0 KiB   296 KiB/s 00:00 [##############################] 100%
+ libxau-1.0.12-1-x86_64        11.4 KiB   379 KiB/s 00:00 [##############################] 100%
+ libmnl-1.0.5-2-x86_64         11.2 KiB   487 KiB/s 00:00 [##############################] 100%
+ ca-certificates-utils-2...    10.8 KiB   285 KiB/s 00:00 [##############################] 100%
+ pacman-mirrorlist-20250...     8.1 KiB   450 KiB/s 00:00 [##############################] 100%
+ libxinerama-1.1.5-2-x86_64     9.8 KiB   378 KiB/s 00:00 [##############################] 100%
+ libxdamage-1.1.6-2-x86_64      7.1 KiB   223 KiB/s 00:00 [##############################] 100%
+ systemd-sysvcompat-257....     6.1 KiB   204 KiB/s 00:00 [##############################] 100%
+ libxshmfence-1.3.3-1-x86_64    6.0 KiB   230 KiB/s 00:00 [##############################] 100%
+ gsettings-system-schema...     5.9 KiB   226 KiB/s 00:00 [##############################] 100%
+ pipewire-alsa-1:1.4.2-1...     5.0 KiB   161 KiB/s 00:00 [##############################] 100%
+ pambase-20230918-2-any         3.0 KiB   113 KiB/s 00:00 [##############################] 100%
+ dbus-broker-units-36-4-...     2.4 KiB  85.2 KiB/s 00:00 [##############################] 100%
+ default-cursors-3-1-any        2.3 KiB  85.8 KiB/s 00:00 [##############################] 100%
+ base-3-2-any                   2.3 KiB  82.4 KiB/s 00:00 [##############################] 100%
+ dbus-units-36-4-x86_64         2.1 KiB  97.4 KiB/s 00:00 [##############################] 100%
+ ca-certificates-2024061...     2.1 KiB  80.2 KiB/s 00:00 [##############################] 100%
+ base-devel-1-2-any             2.1 KiB  76.0 KiB/s 00:00 [##############################] 100%
+ Total (328/328)              871.2 MiB  48.6 MiB/s 00:18 [##############################] 100%
+(328/328) checking keys in keyring                        [##############################] 100%
+(328/328) checking package integrity                      [##############################] 100%
+(328/328) loading package files                           [##############################] 100%
+(328/328) checking for file conflicts                     [##############################] 100%
+(328/328) checking available disk space                   [##############################] 100%
+:: Processing package changes...
+(  1/328) installing iana-etc                             [##############################] 100%
+(  2/328) installing filesystem                           [##############################] 100%
+(  3/328) installing linux-api-headers                    [##############################] 100%
+(  4/328) installing tzdata                               [##############################] 100%
+Optional dependencies for tzdata
+    bash: for tzselect [pending]
+    glibc: for zdump, zic [pending]
+(  5/328) installing glibc                                [##############################] 100%
+Optional dependencies for glibc
+    gd: for memusagestat
+    perl: for mtrace [pending]
+(  6/328) installing gcc-libs                             [##############################] 100%
+(  7/328) installing ncurses                              [##############################] 100%
+Optional dependencies for ncurses
+    bash: for ncursesw6-config [pending]
+(  8/328) installing readline                             [##############################] 100%
+(  9/328) installing bash                                 [##############################] 100%
+Optional dependencies for bash
+    bash-completion: for tab completion
+( 10/328) installing acl                                  [##############################] 100%
+( 11/328) installing attr                                 [##############################] 100%
+( 12/328) installing gmp                                  [##############################] 100%
+( 13/328) installing zlib                                 [##############################] 100%
+( 14/328) installing sqlite                               [##############################] 100%
+( 15/328) installing util-linux-libs                      [##############################] 100%
+Optional dependencies for util-linux-libs
+    python: python bindings to libmount [pending]
+( 16/328) installing e2fsprogs                            [##############################] 100%
+Optional dependencies for e2fsprogs
+    lvm2: for e2scrub
+    util-linux: for e2scrub [pending]
+    smtp-forwarder: for e2scrub_fail script
+( 17/328) installing keyutils                             [##############################] 100%
+( 18/328) installing gdbm                                 [##############################] 100%
+( 19/328) installing openssl                              [##############################] 100%
+Optional dependencies for openssl
+    ca-certificates [pending]
+    perl [pending]
+( 20/328) installing libsasl                              [##############################] 100%
+( 21/328) installing libldap                              [##############################] 100%
+( 22/328) installing libevent                             [##############################] 100%
+Optional dependencies for libevent
+    python: event_rpcgen.py [pending]
+( 23/328) installing libverto                             [##############################] 100%
+( 24/328) installing lmdb                                 [##############################] 100%
+( 25/328) installing krb5                                 [##############################] 100%
+( 26/328) installing libcap-ng                            [##############################] 100%
+( 27/328) installing audit                                [##############################] 100%
+Optional dependencies for audit
+    libldap: for audispd-zos-remote [installed]
+    sh: for augenrules [installed]
+( 28/328) installing libxcrypt                            [##############################] 100%
+( 29/328) installing libtirpc                             [##############################] 100%
+( 30/328) installing libnsl                               [##############################] 100%
+( 31/328) installing pambase                              [##############################] 100%
+( 32/328) installing libgpg-error                         [##############################] 100%
+( 33/328) installing libgcrypt                            [##############################] 100%
+( 34/328) installing lz4                                  [##############################] 100%
+( 35/328) installing xz                                   [##############################] 100%
+( 36/328) installing zstd                                 [##############################] 100%
+( 37/328) installing systemd-libs                         [##############################] 100%
+( 38/328) installing pam                                  [##############################] 100%
+( 39/328) installing libcap                               [##############################] 100%
+( 40/328) installing coreutils                            [##############################] 100%
+( 41/328) installing bzip2                                [##############################] 100%
+( 42/328) installing libseccomp                           [##############################] 100%
+( 43/328) installing file                                 [##############################] 100%
+( 44/328) installing findutils                            [##############################] 100%
+( 45/328) installing mpfr                                 [##############################] 100%
+( 46/328) installing gawk                                 [##############################] 100%
+( 47/328) installing pcre2                                [##############################] 100%
+Optional dependencies for pcre2
+    sh: for pcre2-config [installed]
+( 48/328) installing grep                                 [##############################] 100%
+( 49/328) installing procps-ng                            [##############################] 100%
+( 50/328) installing sed                                  [##############################] 100%
+( 51/328) installing tar                                  [##############################] 100%
+( 52/328) installing gnulib-l10n                          [##############################] 100%
+( 53/328) installing libunistring                         [##############################] 100%
+( 54/328) installing icu                                  [##############################] 100%
+( 55/328) installing libxml2                              [##############################] 100%
+Optional dependencies for libxml2
+    python: Python bindings [pending]
+( 56/328) installing gettext                              [##############################] 100%
+Optional dependencies for gettext
+    git: for autopoint infrastructure updates [pending]
+    appstream: for appstream support
+( 57/328) installing hwdata                               [##############################] 100%
+( 58/328) installing kmod                                 [##############################] 100%
+( 59/328) installing pciutils                             [##############################] 100%
+Optional dependencies for pciutils
+    which: for update-pciids [pending]
+    grep: for update-pciids [installed]
+    curl: for update-pciids [pending]
+( 60/328) installing psmisc                               [##############################] 100%
+( 61/328) installing shadow                               [##############################] 100%
+( 62/328) installing util-linux                           [##############################] 100%
+Optional dependencies for util-linux
+    words: default dictionary for look
+( 63/328) installing gzip                                 [##############################] 100%
+Optional dependencies for gzip
+    less: zless support [pending]
+    util-linux: zmore support [installed]
+    diffutils: zdiff/zcmp support [pending]
+( 64/328) installing licenses                             [##############################] 100%
+( 65/328) installing libtasn1                             [##############################] 100%
+( 66/328) installing libffi                               [##############################] 100%
+( 67/328) installing libp11-kit                           [##############################] 100%
+( 68/328) installing p11-kit                              [##############################] 100%
+( 69/328) installing ca-certificates-utils                [##############################] 100%
+( 70/328) installing ca-certificates-mozilla              [##############################] 100%
+( 71/328) installing ca-certificates                      [##############################] 100%
+( 72/328) installing brotli                               [##############################] 100%
+( 73/328) installing libidn2                              [##############################] 100%
+( 74/328) installing libnghttp2                           [##############################] 100%
+( 75/328) installing libnghttp3                           [##############################] 100%
+( 76/328) installing libpsl                               [##############################] 100%
+( 77/328) installing libssh2                              [##############################] 100%
+( 78/328) installing curl                                 [##############################] 100%
+( 79/328) installing nettle                               [##############################] 100%
+( 80/328) installing leancrypto                           [##############################] 100%
+( 81/328) installing gnutls                               [##############################] 100%
+Optional dependencies for gnutls
+    tpm2-tss: support for TPM2 wrapped keys [pending]
+( 82/328) installing libksba                              [##############################] 100%
+( 83/328) installing libusb                               [##############################] 100%
+( 84/328) installing libassuan                            [##############################] 100%
+( 85/328) installing libsysprof-capture                   [##############################] 100%
+( 86/328) installing glib2                                [##############################] 100%
+Optional dependencies for glib2
+    dconf: GSettings storage backend [pending]
+    glib2-devel: development tools
+    gvfs: most gio functionality
+( 87/328) installing json-c                               [##############################] 100%
+( 88/328) installing tpm2-tss                             [##############################] 100%
+( 89/328) installing libsecret                            [##############################] 100%
+Optional dependencies for libsecret
+    org.freedesktop.secrets: secret storage backend
+( 90/328) installing pinentry                             [##############################] 100%
+Optional dependencies for pinentry
+    gcr: GNOME backend
+    gtk3: GTK backend [pending]
+    qt5-x11extras: Qt5 backend
+    kwayland5: Qt5 backend
+    kguiaddons: Qt6 backend
+    kwindowsystem: Qt6 backend
+( 91/328) installing npth                                 [##############################] 100%
+( 92/328) installing gnupg                                [##############################] 100%
+Optional dependencies for gnupg
+    pcsclite: for using scdaemon not with the gnupg internal card driver [pending]
+( 93/328) installing gpgme                                [##############################] 100%
+( 94/328) installing libarchive                           [##############################] 100%
+( 95/328) installing pacman-mirrorlist                    [##############################] 100%
+( 96/328) installing device-mapper                        [##############################] 100%
+( 97/328) installing popt                                 [##############################] 100%
+( 98/328) installing cryptsetup                           [##############################] 100%
+( 99/328) installing expat                                [##############################] 100%
+(100/328) installing dbus                                 [##############################] 100%
+(101/328) installing dbus-broker                          [##############################] 100%
+(102/328) installing dbus-broker-units                    [##############################] 100%
+(103/328) installing dbus-units                           [##############################] 100%
+(104/328) installing kbd                                  [##############################] 100%
+(105/328) installing libelf                               [##############################] 100%
+(106/328) installing systemd                              [##############################] 100%
+Initializing machine ID from random generator.
+Creating group 'sys' with GID 3.
+Creating group 'mem' with GID 8.
+Creating group 'ftp' with GID 11.
+Creating group 'mail' with GID 12.
+Creating group 'log' with GID 19.
+Creating group 'smmsp' with GID 25.
+Creating group 'proc' with GID 26.
+Creating group 'games' with GID 50.
+Creating group 'lock' with GID 54.
+Creating group 'network' with GID 90.
+Creating group 'floppy' with GID 94.
+Creating group 'scanner' with GID 96.
+Creating group 'power' with GID 98.
+Creating group 'nobody' with GID 65534.
+Creating group 'adm' with GID 999.
+Creating group 'wheel' with GID 998.
+Creating group 'utmp' with GID 997.
+Creating group 'audio' with GID 996.
+Creating group 'disk' with GID 995.
+Creating group 'input' with GID 994.
+Creating group 'kmem' with GID 993.
+Creating group 'kvm' with GID 992.
+Creating group 'lp' with GID 991.
+Creating group 'optical' with GID 990.
+Creating group 'render' with GID 989.
+Creating group 'sgx' with GID 988.
+Creating group 'storage' with GID 987.
+Creating group 'tty' with GID 5.
+Creating group 'uucp' with GID 986.
+Creating group 'video' with GID 985.
+Creating group 'users' with GID 984.
+Creating group 'groups' with GID 983.
+Creating group 'systemd-journal' with GID 982.
+Creating group 'rfkill' with GID 981.
+Creating group 'bin' with GID 1.
+Creating user 'bin' (n/a) with UID 1 and GID 1.
+Creating group 'daemon' with GID 2.
+Creating user 'daemon' (n/a) with UID 2 and GID 2.
+Creating user 'mail' (n/a) with UID 8 and GID 12.
+Creating user 'ftp' (n/a) with UID 14 and GID 11.
+Creating group 'http' with GID 33.
+Creating user 'http' (n/a) with UID 33 and GID 33.
+Creating user 'nobody' (Kernel Overflow User) with UID 65534 and GID 65534.
+Creating group 'dbus' with GID 81.
+Creating user 'dbus' (System Message Bus) with UID 81 and GID 81.
+Creating group 'systemd-coredump' with GID 980.
+Creating user 'systemd-coredump' (systemd Core Dumper) with UID 980 and GID 980.
+Creating group 'systemd-network' with GID 979.
+Creating user 'systemd-network' (systemd Network Management) with UID 979 and GID 979.
+Creating group 'systemd-oom' with GID 978.
+Creating user 'systemd-oom' (systemd Userspace OOM Killer) with UID 978 and GID 978.
+Creating group 'systemd-journal-remote' with GID 977.
+Creating user 'systemd-journal-remote' (systemd Journal Remote) with UID 977 and GID 977.
+Creating group 'systemd-resolve' with GID 976.
+Creating user 'systemd-resolve' (systemd Resolver) with UID 976 and GID 976.
+Creating group 'systemd-timesync' with GID 975.
+Creating user 'systemd-timesync' (systemd Time Synchronization) with UID 975 and GID 975.
+Creating group 'tss' with GID 974.
+Creating user 'tss' (tss user for tpm2) with UID 974 and GID 974.
+Creating group 'uuidd' with GID 973.
+Creating user 'uuidd' (UUID generator helper daemon) with UID 973 and GID 973.
+Created symlink '/etc/systemd/system/getty.target.wants/getty@tty1.service' → '/usr/lib/systemd/system/getty@.service'.
+Created symlink '/etc/systemd/system/multi-user.target.wants/remote-fs.target' → '/usr/lib/systemd/system/remote-fs.target'.
+Created symlink '/etc/systemd/system/sockets.target.wants/systemd-userdbd.socket' → '/usr/lib/systemd/system/systemd-userdbd.socket'.
+Optional dependencies for systemd
+    libmicrohttpd: systemd-journal-gatewayd and systemd-journal-remote
+    quota-tools: kernel-level quota management
+    systemd-sysvcompat: symlink package to provide sysvinit binaries [pending]
+    systemd-ukify: combine kernel and initrd into a signed Unified Kernel Image
+    polkit: allow administration as unprivileged user [pending]
+    curl: systemd-journal-upload, machinectl pull-tar and pull-raw [installed]
+    gnutls: systemd-journal-gatewayd and systemd-journal-remote [installed]
+    qrencode: show QR codes
+    iptables: firewall features [pending]
+    libarchive: convert DDIs to tarballs [installed]
+    libbpf: support BPF programs [pending]
+    libpwquality: check password quality
+    libfido2: unlocking LUKS2 volumes with FIDO2 token
+    libp11-kit: support PKCS#11 [installed]
+    tpm2-tss: unlocking LUKS2 volumes with TPM2 [installed]
+(107/328) installing pacman                               [##############################] 100%
+Optional dependencies for pacman
+    base-devel: required to use makepkg [pending]
+    perl-locale-gettext: translation support in makepkg-template
+(108/328) installing archlinux-keyring                    [##############################] 100%
+==> Appending keys from archlinux.gpg...
+==> Locally signing trusted keys in keyring...
+  -> Locally signed 5 keys.
+==> Importing owner trust values...
+gpg: setting ownertrust to 4
+gpg: setting ownertrust to 4
+gpg: setting ownertrust to 4
+gpg: inserting ownertrust of 4
+gpg: setting ownertrust to 4
+==> Disabling revoked keys in keyring...
+  -> Disabled 46 keys.
+==> Updating trust database...
+gpg: Note: third-party key signatures using the SHA1 algorithm are rejected
+gpg: (use option "--allow-weak-key-signatures" to override)
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   5  trust: 0-, 0q, 0n, 0m, 0f, 1u
+gpg: depth: 1  valid:   5  signed: 102  trust: 0-, 0q, 0n, 5m, 0f, 0u
+gpg: depth: 2  valid:  78  signed:  20  trust: 78-, 0q, 0n, 0m, 0f, 0u
+gpg: next trustdb check due at 2025-07-01
+(109/328) installing systemd-sysvcompat                   [##############################] 100%
+(110/328) installing iputils                              [##############################] 100%
+(111/328) installing libmnl                               [##############################] 100%
+(112/328) installing libnftnl                             [##############################] 100%
+(113/328) installing libnl                                [##############################] 100%
+(114/328) installing libpcap                              [##############################] 100%
+(115/328) installing libnfnetlink                         [##############################] 100%
+(116/328) installing libnetfilter_conntrack               [##############################] 100%
+(117/328) installing iptables                             [##############################] 100%
+(118/328) installing libbpf                               [##############################] 100%
+(119/328) installing iproute2                             [##############################] 100%
+Optional dependencies for iproute2
+    db5.3: userspace arp daemon [pending]
+    linux-atm: ATM support
+    python: for routel [pending]
+(120/328) installing base                                 [##############################] 100%
+Optional dependencies for base
+    linux: bare metal support [pending]
+(121/328) installing m4                                   [##############################] 100%
+(122/328) installing diffutils                            [##############################] 100%
+(123/328) installing db5.3                                [##############################] 100%
+(124/328) installing perl                                 [##############################] 100%
+(125/328) installing autoconf                             [##############################] 100%
+(126/328) installing automake                             [##############################] 100%
+(127/328) installing jansson                              [##############################] 100%
+(128/328) installing binutils                             [##############################] 100%
+Optional dependencies for binutils
+    debuginfod: for debuginfod server/client functionality
+(129/328) installing bison                                [##############################] 100%
+(130/328) installing xxhash                               [##############################] 100%
+(131/328) installing debugedit                            [##############################] 100%
+(132/328) installing fakeroot                             [##############################] 100%
+(133/328) installing flex                                 [##############################] 100%
+(134/328) installing libmpc                               [##############################] 100%
+(135/328) installing libisl                               [##############################] 100%
+(136/328) installing gcc                                  [##############################] 100%
+Optional dependencies for gcc
+    lib32-gcc-libs: for generating code for 32-bit ABI
+(137/328) installing groff                                [##############################] 100%
+Optional dependencies for groff
+    netpbm: for use together with man -H command interaction in browsers
+    psutils: for use together with man -H command interaction in browsers
+    libxaw: for gxditview
+    perl-file-homedir: for use with glilypond
+(138/328) installing libtool                              [##############################] 100%
+(139/328) installing gc                                   [##############################] 100%
+(140/328) installing guile                                [##############################] 100%
+(141/328) installing make                                 [##############################] 100%
+(142/328) installing patch                                [##############################] 100%
+Optional dependencies for patch
+    ed: for patch -e functionality
+(143/328) installing pkgconf                              [##############################] 100%
+(144/328) installing sudo                                 [##############################] 100%
+(145/328) installing texinfo                              [##############################] 100%
+Optional dependencies for texinfo
+    perl-archive-zip: EPUB file output via texi2any
+(146/328) installing which                                [##############################] 100%
+(147/328) installing base-devel                           [##############################] 100%
+(148/328) installing mkinitcpio-busybox                   [##############################] 100%
+(149/328) installing mkinitcpio                           [##############################] 100%
+Optional dependencies for mkinitcpio
+    xz: Use lzma or xz compression for the initramfs image [installed]
+    bzip2: Use bzip2 compression for the initramfs image [installed]
+    lzop: Use lzo compression for the initramfs image
+    lz4: Use lz4 compression for the initramfs image [installed]
+    mkinitcpio-nfs-utils: Support for root filesystem on NFS
+    systemd-ukify: alternative UKI generator
+(150/328) installing linux                                [##############################] 100%
+Optional dependencies for linux
+    linux-firmware: firmware images needed for some devices [pending]
+    scx-scheds: to use sched-ext schedulers
+    wireless-regdb: to set the correct wireless channels of your country
+(151/328) installing linux-firmware-whence                [##############################] 100%
+(152/328) installing linux-firmware                       [##############################] 100%
+(153/328) installing pahole                               [##############################] 100%
+Optional dependencies for pahole
+    ostra-cg: Generate call graphs from encoded traces
+(154/328) installing linux-headers                        [##############################] 100%
+(155/328) installing perl-error                           [##############################] 100%
+(156/328) installing perl-timedate                        [##############################] 100%
+(157/328) installing perl-mailtools                       [##############################] 100%
+(158/328) installing zlib-ng                              [##############################] 100%
+(159/328) installing git                                  [##############################] 100%
+Optional dependencies for git
+    git-zsh-completion: upstream zsh completion
+    tk: gitk and git gui
+    openssh: ssh transport and crypto [pending]
+    man: show help with `git command --help` [pending]
+    perl-libwww: git svn
+    perl-term-readkey: git svn and interactive.singlekey setting
+    perl-io-socket-ssl: git send-email TLS support
+    perl-authen-sasl: git send-email TLS support
+    perl-mediawiki-api: git mediawiki support
+    perl-datetime-format-iso8601: git mediawiki support
+    perl-lwp-protocol-https: git mediawiki https support
+    perl-cgi: gitweb (web interface) support
+    python: git svn & git p4 [pending]
+    subversion: git svn
+    org.freedesktop.secrets: keyring credential helper
+    libsecret: libsecret credential helper [installed]
+(160/328) installing lzo                                  [##############################] 100%
+(161/328) installing btrfs-progs                          [##############################] 100%
+Optional dependencies for btrfs-progs
+    python: libbtrfsutil python bindings [pending]
+    e2fsprogs: btrfs-convert [installed]
+(162/328) installing grub                                 [##############################] 100%
+:: Install your bootloader and generate configuration with:
+     # grub-install ...
+     # grub-mkconfig -o /boot/grub/grub.cfg
+Optional dependencies for grub
+    dosfstools: For grub-mkrescue FAT FS and EFI support
+    efibootmgr: For grub-install EFI support [pending]
+    freetype2: For grub-mkfont usage [pending]
+    fuse3: For grub-mount usage
+    libisoburn: Provides xorriso for generating grub rescue iso using grub-mkrescue
+    lzop: For grub-mkrescue LZO support
+    mtools: For grub-mkrescue FAT FS support
+    os-prober: To detect other OSes when generating grub.cfg in BIOS systems
+(163/328) installing efivar                               [##############################] 100%
+(164/328) installing efibootmgr                           [##############################] 100%
+(165/328) installing grub-btrfs                           [##############################] 100%
+Optional dependencies for grub-btrfs
+    snapper: For snapper support
+    inotify-tools: For grub-btrfsd daemon [pending]
+(166/328) installing inotify-tools                        [##############################] 100%
+(167/328) installing libgee                               [##############################] 100%
+(168/328) installing json-glib                            [##############################] 100%
+(169/328) installing adwaita-fonts                        [##############################] 100%
+(170/328) installing hicolor-icon-theme                   [##############################] 100%
+(171/328) installing adwaita-icon-theme-legacy            [##############################] 100%
+(172/328) installing adwaita-cursors                      [##############################] 100%
+(173/328) installing adwaita-icon-theme                   [##############################] 100%
+(174/328) installing dconf                                [##############################] 100%
+(175/328) installing gsettings-system-schemas             [##############################] 100%
+(176/328) installing gsettings-desktop-schemas            [##############################] 100%
+(177/328) installing xcb-proto                            [##############################] 100%
+(178/328) installing xorgproto                            [##############################] 100%
+(179/328) installing libxdmcp                             [##############################] 100%
+(180/328) installing libxau                               [##############################] 100%
+(181/328) installing libxcb                               [##############################] 100%
+(182/328) installing libx11                               [##############################] 100%
+(183/328) installing libxext                              [##############################] 100%
+(184/328) installing libxfixes                            [##############################] 100%
+(185/328) installing libxi                                [##############################] 100%
+(186/328) installing libxtst                              [##############################] 100%
+(187/328) installing xorg-xprop                           [##############################] 100%
+(188/328) installing at-spi2-core                         [##############################] 100%
+(189/328) installing libpng                               [##############################] 100%
+(190/328) installing graphite                             [##############################] 100%
+Optional dependencies for graphite
+    graphite-docs: Documentation
+(191/328) installing harfbuzz                             [##############################] 100%
+Optional dependencies for harfbuzz
+    harfbuzz-utils: utilities
+(192/328) installing freetype2                            [##############################] 100%
+(193/328) installing fontconfig                           [##############################] 100%
+Creating fontconfig configuration...
+Rebuilding fontconfig cache...
+(194/328) installing libxrender                           [##############################] 100%
+(195/328) installing pixman                               [##############################] 100%
+(196/328) installing cairo                                [##############################] 100%
+(197/328) installing desktop-file-utils                   [##############################] 100%
+(198/328) installing fribidi                              [##############################] 100%
+(199/328) installing libjpeg-turbo                        [##############################] 100%
+Optional dependencies for libjpeg-turbo
+    java-runtime>11: for TurboJPEG Java wrapper
+(200/328) installing jbigkit                              [##############################] 100%
+(201/328) installing libtiff                              [##############################] 100%
+Optional dependencies for libtiff
+    freeglut: for using tiffgt
+(202/328) installing shared-mime-info                     [##############################] 100%
+(203/328) installing gdk-pixbuf2                          [##############################] 100%
+Optional dependencies for gdk-pixbuf2
+    libwmf: Load .wmf and .apm
+    libopenraw: Load .dng, .cr2, .crw, .nef, .orf, .pef, .arw, .erf, .mrw, and .raf
+    libavif: Load .avif
+    libheif: Load .heif, .heic, and .avif
+    libjxl: Load .jxl
+    librsvg: Load .svg, .svgz, and .svg.gz [pending]
+    webp-pixbuf-loader: Load .webp
+(204/328) installing iso-codes                            [##############################] 100%
+(205/328) installing libcloudproviders                    [##############################] 100%
+(206/328) installing lcms2                                [##############################] 100%
+(207/328) installing libcolord                            [##############################] 100%
+(208/328) installing libdaemon                            [##############################] 100%
+(209/328) installing avahi                                [##############################] 100%
+Optional dependencies for avahi
+    gtk3: avahi-discover, avahi-discover-standalone, bshell, bssh, bvnc [pending]
+    libevent: libevent bindings [installed]
+    nss-mdns: NSS support for mDNS
+    python-dbus: avahi-bookmarks, avahi-discover
+    python-gobject: avahi-bookmarks, avahi-discover
+    python-twisted: avahi-bookmarks
+    qt5-base: qt5 bindings
+(210/328) installing libcups                              [##############################] 100%
+(211/328) installing libpciaccess                         [##############################] 100%
+(212/328) installing libdrm                               [##############################] 100%
+Optional dependencies for libdrm
+    cairo: needed for modetest tool [installed]
+(213/328) installing libxshmfence                         [##############################] 100%
+(214/328) installing libxxf86vm                           [##############################] 100%
+(215/328) installing libedit                              [##############################] 100%
+(216/328) installing llvm-libs                            [##############################] 100%
+(217/328) installing lm_sensors                           [##############################] 100%
+Optional dependencies for lm_sensors
+    rrdtool: for logging with sensord
+    perl: for sensor detection and configuration convert [installed]
+(218/328) installing spirv-tools                          [##############################] 100%
+(219/328) installing default-cursors                      [##############################] 100%
+Optional dependencies for default-cursors
+    adwaita-cursors: default cursor theme [installed]
+(220/328) installing wayland                              [##############################] 100%
+(221/328) installing mesa                                 [##############################] 100%
+Optional dependencies for mesa
+    opengl-man-pages: for the OpenGL API man pages
+(222/328) installing libglvnd                             [##############################] 100%
+(223/328) installing libepoxy                             [##############################] 100%
+(224/328) installing dav1d                                [##############################] 100%
+Optional dependencies for dav1d
+    dav1d-doc: HTML documentation
+(225/328) installing libdatrie                            [##############################] 100%
+(226/328) installing libthai                              [##############################] 100%
+(227/328) installing libxft                               [##############################] 100%
+(228/328) installing pango                                [##############################] 100%
+(229/328) installing librsvg                              [##############################] 100%
+(230/328) installing libxcomposite                        [##############################] 100%
+(231/328) installing libxcursor                           [##############################] 100%
+(232/328) installing libxdamage                           [##############################] 100%
+(233/328) installing libxinerama                          [##############################] 100%
+(234/328) installing xkeyboard-config                     [##############################] 100%
+(235/328) installing libxkbcommon                         [##############################] 100%
+Optional dependencies for libxkbcommon
+    libxkbcommon-x11: xkbcli interactive-x11
+    wayland: xkbcli interactive-wayland [installed]
+(236/328) installing libxrandr                            [##############################] 100%
+(237/328) installing duktape                              [##############################] 100%
+(238/328) installing libproxy                             [##############################] 100%
+(239/328) installing glib-networking                      [##############################] 100%
+(240/328) installing libsoup3                             [##############################] 100%
+Optional dependencies for libsoup3
+    samba: Windows Domain SSO
+(241/328) installing libstemmer                           [##############################] 100%
+(242/328) installing tinysparql                           [##############################] 100%
+(243/328) installing gtk-update-icon-cache                [##############################] 100%
+(244/328) installing gtk3                                 [##############################] 100%
+Optional dependencies for gtk3
+    evince: Default print preview command
+(245/328) installing graphene                             [##############################] 100%
+(246/328) installing vte-common                           [##############################] 100%
+(247/328) installing vte3                                 [##############################] 100%
+(248/328) installing rsync                                [##############################] 100%
+Optional dependencies for rsync
+    python: for rrsync [pending]
+(249/328) installing libdbusmenu-glib                     [##############################] 100%
+(250/328) installing libdbusmenu-gtk3                     [##############################] 100%
+(251/328) installing libxkbfile                           [##############################] 100%
+(252/328) installing xorg-xkbcomp                         [##############################] 100%
+(253/328) installing libxklavier                          [##############################] 100%
+(254/328) installing libgnomekbd                          [##############################] 100%
+(255/328) installing xapp                                 [##############################] 100%
+Optional dependencies for xapp
+    python: for mate-desktop status applet [pending]
+(256/328) installing run-parts                            [##############################] 100%
+(257/328) installing cronie                               [##############################] 100%
+Optional dependencies for cronie
+    smtp-server: send job output via email
+    smtp-forwarder: forward job output to email server
+(258/328) installing timeshift                            [##############################] 100%
+TimeShift scheduled backups require the cronie.service to be running.
+Try:
+  systemctl enable --now cronie.service
+Optional dependencies for timeshift
+    btrfs-progs: For BTRFS support [installed]
+    grub-btrfs: For BTRFS snapshots in GRUB [installed]
+    xorg-xhost: For authorization on Wayland
+(259/328) installing vim-runtime                          [##############################] 100%
+Optional dependencies for vim-runtime
+    sh: support for some tools and macros [installed]
+    python: demoserver example tool [pending]
+    gawk: mve tools upport [installed]
+(260/328) installing gpm                                  [##############################] 100%
+(261/328) installing vim                                  [##############################] 100%
+Optional dependencies for vim
+    python: Python language support [pending]
+    ruby: Ruby language support
+    lua: Lua language support [pending]
+    perl: Perl language support [installed]
+    tcl: Tcl language support
+(262/328) installing libmm-glib                           [##############################] 100%
+(263/328) installing libndp                               [##############################] 100%
+(264/328) installing pcre                                 [##############################] 100%
+(265/328) installing slang                                [##############################] 100%
+(266/328) installing libnewt                              [##############################] 100%
+Optional dependencies for libnewt
+    python: libnewt support with the _snack module [pending]
+    tcl: whiptcl support
+(267/328) installing nspr                                 [##############################] 100%
+(268/328) installing nss                                  [##############################] 100%
+(269/328) installing libnm                                [##############################] 100%
+(270/328) installing libsodium                            [##############################] 100%
+(271/328) installing libpgm                               [##############################] 100%
+(272/328) installing zeromq                               [##############################] 100%
+Optional dependencies for zeromq
+    cppzmq: C++ binding for libzmq
+(273/328) installing libteam                              [##############################] 100%
+(274/328) installing mobile-broadband-provider-info       [##############################] 100%
+(275/328) installing polkit                               [##############################] 100%
+(276/328) installing pcsclite                             [##############################] 100%
+Optional dependencies for pcsclite
+    python: API call trace logging with the pcsc-spy [pending]
+    ccid: USB Chip/Smart Card Interface Devices driver
+(277/328) installing wpa_supplicant                       [##############################] 100%
+(278/328) installing networkmanager                       [##############################] 100%
+Optional dependencies for networkmanager
+    bluez: Bluetooth support
+    dhcpcd: alternative DHCP client
+    dnsmasq: connection sharing
+    firewalld: firewall support
+    iptables: connection sharing [installed]
+    iwd: wpa_supplicant alternative
+    modemmanager: cellular network support
+    nftables: connection sharing
+    openresolv: alternative resolv.conf manager
+    pacrunner: PAC proxy support
+    polkit: let non-root users control networking [installed]
+    ppp: dialup connection support
+(279/328) installing libpipewire                          [##############################] 100%
+(280/328) installing pipewire                             [##############################] 100%
+Created symlink '/etc/systemd/user/sockets.target.wants/pipewire.socket' → '/usr/lib/systemd/user/pipewire.socket'.
+Optional dependencies for pipewire
+    gst-plugin-pipewire: GStreamer plugin
+    pipewire-alsa: ALSA configuration [pending]
+    pipewire-audio: Audio support [pending]
+    pipewire-docs: Documentation
+    pipewire-ffado: FireWire support
+    pipewire-jack-client: PipeWire as JACK client
+    pipewire-jack: JACK replacement [pending]
+    pipewire-libcamera: Libcamera support
+    pipewire-pulse: PulseAudio replacement [pending]
+    pipewire-roc: ROC streaming
+    pipewire-session-manager: Session manager [pending]
+    pipewire-v4l2: V4L2 interceptor
+    pipewire-x11-bell: X11 bell
+    pipewire-zeroconf: Zeroconf support
+    realtime-privileges: realtime privileges with rt module
+    rtkit: realtime privileges with rtkit module
+(281/328) installing alsa-card-profiles                   [##############################] 100%
+(282/328) installing alsa-topology-conf                   [##############################] 100%
+(283/328) installing alsa-ucm-conf                        [##############################] 100%
+(284/328) installing alsa-lib                             [##############################] 100%
+(285/328) installing bluez-libs                           [##############################] 100%
+(286/328) installing libebur128                           [##############################] 100%
+(287/328) installing libfdk-aac                           [##############################] 100%
+(288/328) installing libfreeaptx                          [##############################] 100%
+(289/328) installing liblc3                               [##############################] 100%
+Optional dependencies for liblc3
+    python: Python bindings [pending]
+(290/328) installing libldac                              [##############################] 100%
+(291/328) installing libmysofa                            [##############################] 100%
+(292/328) installing libogg                               [##############################] 100%
+(293/328) installing flac                                 [##############################] 100%
+(294/328) installing lame                                 [##############################] 100%
+(295/328) installing libvorbis                            [##############################] 100%
+(296/328) installing mpg123                               [##############################] 100%
+Optional dependencies for mpg123
+    sdl2: for sdl audio support
+    jack: for jack audio support [pending]
+    libpulse: for pulse audio support [pending]
+    perl: for conplay [installed]
+(297/328) installing opus                                 [##############################] 100%
+(298/328) installing libsndfile                           [##############################] 100%
+Optional dependencies for libsndfile
+    alsa-lib: for sndfile-play [installed]
+(299/328) installing serd                                 [##############################] 100%
+Optional dependencies for serd
+    serd-docs: for developer documentation
+(300/328) installing zix                                  [##############################] 100%
+Optional dependencies for zix
+    zix-docs: for developer documentation
+(301/328) installing sord                                 [##############################] 100%
+Optional dependencies for sord
+    sord-docs: for developer documentation
+(302/328) installing lv2                                  [##############################] 100%
+Optional dependencies for lv2
+    lv2-docs: for developer documentation
+    lv2-example-plugins: for example plugins
+    python-lxml: for lv2specgen.py
+    python-markdown: for lv2specgen.py
+    python-pygments: for lv2specgen.py
+    python-rdflib: for lv2specgen.py
+    sord: for lv2_validate [installed]
+(303/328) installing sratom                               [##############################] 100%
+Optional dependencies for sratom
+    sratom-docs: for developer documentation
+(304/328) installing lilv                                 [##############################] 100%
+Optional dependencies for lilv
+    libsndfile: for lv2apply [installed]
+    lilv-docs: for documentation
+    python-lilv: for Python bindings
+(305/328) installing sbc                                  [##############################] 100%
+(306/328) installing gtest                                [##############################] 100%
+Optional dependencies for gtest
+    python: gmock generator [pending]
+(307/328) installing abseil-cpp                           [##############################] 100%
+(308/328) installing webrtc-audio-processing-1            [##############################] 100%
+(309/328) installing pipewire-audio                       [##############################] 100%
+(310/328) installing libwireplumber                       [##############################] 100%
+(311/328) installing lua                                  [##############################] 100%
+(312/328) installing wireplumber                          [##############################] 100%
+Created symlink '/etc/systemd/user/pipewire-session-manager.service' → '/usr/lib/systemd/user/wireplumber.service'.
+Created symlink '/etc/systemd/user/pipewire.service.wants/wireplumber.service' → '/usr/lib/systemd/user/wireplumber.service'.
+Optional dependencies for wireplumber
+    wireplumber-docs: Documentation
+(313/328) installing pipewire-alsa                        [##############################] 100%
+(314/328) installing libasyncns                           [##############################] 100%
+(315/328) installing libpulse                             [##############################] 100%
+Optional dependencies for libpulse
+    pulse-native-provider: PulseAudio backend [pending]
+(316/328) installing pipewire-pulse                       [##############################] 100%
+Created symlink '/etc/systemd/user/sockets.target.wants/pipewire-pulse.socket' → '/usr/lib/systemd/user/pipewire-pulse.socket'.
+(317/328) installing pipewire-jack                        [##############################] 100%
+Optional dependencies for pipewire-jack
+    jack-example-tools: for official JACK example-clients and tools
+(318/328) installing mpdecimal                            [##############################] 100%
+(319/328) installing python                               [##############################] 100%
+Optional dependencies for python
+    python-setuptools: for building Python packages using tooling that is usually bundled with
+    Python
+    python-pip: for installing Python packages using tooling that is usually bundled with
+    Python
+    python-pipx: for installing Python software not packaged on Arch Linux
+    sqlite: for a default database integration [installed]
+    xz: for lzma [installed]
+    tk: for tkinter
+(320/328) installing reflector                            [##############################] 100%
+Optional dependencies for reflector
+    rsync: rate rsync mirrors [installed]
+(321/328) installing zsh                                  [##############################] 100%
+(322/328) installing zsh-completions                      [##############################] 100%
+(323/328) installing zsh-autosuggestions                  [##############################] 100%
+(324/328) installing openssh                              [##############################] 100%
+Optional dependencies for openssh
+    libfido2: FIDO/U2F support
+    sh: for ssh-copy-id and findssl.sh [installed]
+    x11-ssh-askpass: input passphrase in X
+    xorg-xauth: X11 forwarding
+(325/328) installing libpipeline                          [##############################] 100%
+(326/328) installing less                                 [##############################] 100%
+(327/328) installing man-db                               [##############################] 100%
+Optional dependencies for man-db
+    gzip [installed]
+(328/328) installing intel-ucode                          [##############################] 100%
+:: Running post-transaction hooks...
+( 1/24) Creating system user accounts...
+Creating group 'polkitd' with GID 102.
+Creating group 'alpm' with GID 972.
+Creating user 'alpm' (Arch Linux Package Management) with UID 972 and GID 972.
+Creating group 'avahi' with GID 971.
+Creating user 'avahi' (Avahi mDNS/DNS-SD daemon) with UID 971 and GID 971.
+Creating group 'git' with GID 970.
+Creating user 'git' (git daemon user) with UID 970 and GID 970.
+Creating user 'polkitd' (User for polkitd) with UID 102 and GID 102.
+( 2/24) Updating journal message catalog...
+( 3/24) Reloading system manager configuration...
+  Skipped: Running in chroot.
+( 4/24) Reloading user manager configuration...
+  Skipped: Running in chroot.
+( 5/24) Updating udev hardware database...
+( 6/24) Applying kernel sysctl settings...
+  Skipped: Running in chroot.
+( 7/24) Creating temporary files...
+( 8/24) Reloading device manager configuration...
+  Skipped: Running in chroot.
+( 9/24) Arming ConditionNeedsUpdate...
+(10/24) Updating the MIME type database...
+(11/24) Updating fontconfig configuration...
+(12/24) Rebuilding certificate stores...
+(13/24) Updating module dependencies...
+(14/24) Updating linux initcpios...
+==> Building image from preset: /etc/mkinitcpio.d/linux.preset: 'default'
+==> Using default configuration file: '/etc/mkinitcpio.conf'
+  -> -k /boot/vmlinuz-linux -g /boot/initramfs-linux.img
+==> Starting build: '6.14.7-arch2-1'
+  -> Running build hook: [base]
+  -> Running build hook: [udev]
+  -> Running build hook: [autodetect]
+  -> Running build hook: [microcode]
+  -> Running build hook: [modconf]
+  -> Running build hook: [kms]
+  -> Running build hook: [keyboard]
+  -> Running build hook: [keymap]
+  -> Running build hook: [consolefont]
+==> WARNING: consolefont: no font found in configuration
+  -> Running build hook: [block]
+  -> Running build hook: [filesystems]
+  -> Running build hook: [fsck]
+==> Generating module dependencies
+==> Creating zstd-compressed initcpio image: '/boot/initramfs-linux.img'
+  -> Early uncompressed CPIO image generation successful
+==> Initcpio image generation successful
+==> Building image from preset: /etc/mkinitcpio.d/linux.preset: 'fallback'
+==> Using default configuration file: '/etc/mkinitcpio.conf'
+  -> -k /boot/vmlinuz-linux -g /boot/initramfs-linux-fallback.img -S autodetect
+==> Starting build: '6.14.7-arch2-1'
+  -> Running build hook: [base]
+  -> Running build hook: [udev]
+  -> Running build hook: [microcode]
+  -> Running build hook: [modconf]
+  -> Running build hook: [kms]
+==> WARNING: Possibly missing firmware for module: 'ast'
+  -> Running build hook: [keyboard]
+==> WARNING: Possibly missing firmware for module: 'xhci_pci_renesas'
+  -> Running build hook: [keymap]
+  -> Running build hook: [consolefont]
+==> WARNING: consolefont: no font found in configuration
+  -> Running build hook: [block]
+==> WARNING: Possibly missing firmware for module: 'aic94xx'
+==> WARNING: Possibly missing firmware for module: 'bfa'
+==> WARNING: Possibly missing firmware for module: 'qed'
+==> WARNING: Possibly missing firmware for module: 'qla1280'
+==> WARNING: Possibly missing firmware for module: 'qla2xxx'
+==> WARNING: Possibly missing firmware for module: 'wd719x'
+  -> Running build hook: [filesystems]
+  -> Running build hook: [fsck]
+==> Generating module dependencies
+==> Creating zstd-compressed initcpio image: '/boot/initramfs-linux-fallback.img'
+  -> Early uncompressed CPIO image generation successful
+==> Initcpio image generation successful
+(15/24) Reloading system bus configuration...
+  Skipped: Running in chroot.
+(16/24) Checking for old perl modules...
+(17/24) Updating fontconfig cache...
+(18/24) Probing GDK-Pixbuf loader modules...
+(19/24) Updating GIO module cache...
+(20/24) Compiling GSettings XML schema files...
+(21/24) Probing GTK3 input method modules...
+(22/24) Updating icon theme caches...
+(23/24) Updating the info directory file...
+(24/24) Updating the desktop file MIME type cache...
++ genfstab -U /mnt
++ cat /mnt/etc/fstab
+# Static information about the filesystems.
+# See fstab(5) for details.
+
+# <file system> <dir> <type> <options> <dump> <pass>
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /               btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@  0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /home           btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@home      0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /opt            btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@opt       0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /srv            btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@srv       0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /var/cache      btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@cache     0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /var/lib/libvirt/images btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@images    0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /var/log        btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@log       0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /var/spool      btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@spool     0 0
+
+# /dev/mapper/main
+UUID=d529cfd6-becc-4b8b-856a-7bfb35a440d1       /tmp            btrfs           rw,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,subvol=/@tmp       0 0
+
+# /dev/nvme0n1p1
+UUID=BF04-7B67          /boot/efi       vfat            rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro  0 2
+
+++ blkid -s UUID -o value /dev/nvme0n1p2
++ CRYPT_UUID=56f1195f-212d-4e07-94a4-d9b61e227f2f
++ arch-chroot /mnt /bin/bash
+Generating locales...
+  en_US.UTF-8... done
+Generation complete.
+Set root password:
+set user password:
+Attempted to uncomment the %wheel group line in /etc/sudoers.
+Visudo will now perform a syntax check.
+Verification: %wheel group line appears to be uncommented.
+==> WARNING: Failed to enable color. Check your TERM environment variable
+==> Building image from preset: /etc/mkinitcpio.d/linux.preset: 'default'
+==> Using default configuration file: '/etc/mkinitcpio.conf'
+  -> -k /boot/vmlinuz-linux -g /boot/initramfs-linux.img
+==> WARNING: Failed to enable color. Check your TERM environment variable
+==> Starting build: '6.14.7-arch2-1'
+  -> Running build hook: [base]
+  -> Running build hook: [udev]
+  -> Running build hook: [autodetect]
+  -> Running build hook: [microcode]
+  -> Running build hook: [modconf]
+  -> Running build hook: [kms]
+  -> Running build hook: [keyboard]
+  -> Running build hook: [keymap]
+  -> Running build hook: [consolefont]
+==> WARNING: consolefont: no font found in configuration
+  -> Running build hook: [block]
+  -> Running build hook: [encrypt]
+  -> Running build hook: [filesystems]
+  -> Running build hook: [fsck]
+==> Generating module dependencies
+==> Creating zstd-compressed initcpio image: '/boot/initramfs-linux.img'
+  -> Early uncompressed CPIO image generation successful
+==> Initcpio image generation successful
+==> Building image from preset: /etc/mkinitcpio.d/linux.preset: 'fallback'
+==> Using default configuration file: '/etc/mkinitcpio.conf'
+  -> -k /boot/vmlinuz-linux -g /boot/initramfs-linux-fallback.img -S autodetect
+==> WARNING: Failed to enable color. Check your TERM environment variable
+==> Starting build: '6.14.7-arch2-1'
+  -> Running build hook: [base]
+  -> Running build hook: [udev]
+  -> Running build hook: [microcode]
+  -> Running build hook: [modconf]
+  -> Running build hook: [kms]
+==> WARNING: Possibly missing firmware for module: 'ast'
+  -> Running build hook: [keyboard]
+==> WARNING: Possibly missing firmware for module: 'xhci_pci_renesas'
+  -> Running build hook: [keymap]
+  -> Running build hook: [consolefont]
+==> WARNING: consolefont: no font found in configuration
+  -> Running build hook: [block]
+==> WARNING: Possibly missing firmware for module: 'aic94xx'
+==> WARNING: Possibly missing firmware for module: 'bfa'
+==> WARNING: Possibly missing firmware for module: 'qed'
+==> WARNING: Possibly missing firmware for module: 'qla1280'
+==> WARNING: Possibly missing firmware for module: 'qla2xxx'
+==> WARNING: Possibly missing firmware for module: 'wd719x'
+  -> Running build hook: [encrypt]
+  -> Running build hook: [filesystems]
+  -> Running build hook: [fsck]
+==> Generating module dependencies
+==> Creating zstd-compressed initcpio image: '/boot/initramfs-linux-fallback.img'
+  -> Early uncompressed CPIO image generation successful
+==> Initcpio image generation successful
+Installing for x86_64-efi platform.
+grub-install: error: attempt to install to encrypted disk without cryptodisk enabled. Set `GRUB_ENABLE_CRYPTODISK=y' in file `/etc/default/grub'.
+/usr/bin/grub-mkconfig: line 270: /boot/efi/grub/grub.cfg.new: No such file or directory
+/usr/bin/grub-mkconfig: line 270: /boot/efi/grub/grub.cfg.new: No such file or directory
+Created symlink '/etc/systemd/system/multi-user.target.wants/NetworkManager.service' → '/usr/lib/systemd/system/NetworkManager.service'.
+Created symlink '/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service' → '/usr/lib/systemd/system/NetworkManager-dispatcher.service'.
+Created symlink '/etc/systemd/system/network-online.target.wants/NetworkManager-wait-online.service' → '/usr/lib/systemd/system/NetworkManager-wait-online.service'.
++ rsync -aAXHv --progress /root/arch-setup-profiles/profiles /mnt/
+sending incremental file list
+profiles/
+profiles/general.sh
+            479 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=6/8)
+profiles/desktop/
+profiles/desktop/hyprland.sh
+            483 100%  471.68kB/s    0:00:00 (xfr#2, to-chk=2/8)
+profiles/desktopmanager/
+profiles/desktopmanager/sddm.sh
+            306 100%  298.83kB/s    0:00:00 (xfr#3, to-chk=1/8)
+profiles/drivers/
+profiles/drivers/intel.sh
+             83 100%   81.05kB/s    0:00:00 (xfr#4, to-chk=0/8)
+
+sent 1,809 bytes  received 108 bytes  3,834.00 bytes/sec
+total size is 1,351  speedup is 0.70
++ umount -R /mnt
++ cryptsetup close cryptroot
+Device cryptroot is not active.
+bash arch-setup-profiles/01-install.sh  120.55s user 59.15s system 101% cpu 2:57.47 total
